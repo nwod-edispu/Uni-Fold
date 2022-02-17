@@ -41,8 +41,15 @@ def generate_pkl_features_from_fasta(
 
     # Check output dir.
     output_dir = os.path.join(output_dir, name)
+
+    # TODO: temp change for the feature generation, remember to fix this
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
+    else:
+        if os.path.exists(os.path.join(output_dir, "timings.json")):
+            print(f"skip {fasta_path}")
+            return
+
     msa_output_dir = os.path.join(output_dir, 'msas')
     if not os.path.exists(msa_output_dir):
         os.makedirs(msa_output_dir)
