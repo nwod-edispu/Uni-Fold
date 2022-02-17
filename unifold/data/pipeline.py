@@ -121,8 +121,9 @@ class DataPipeline:
     def process(self, input_fasta_path: str, msa_output_dir: str) -> FeatureDict:
         """Runs alignment tools on the input sequence and creates features."""
         fasta_dir, fasta_file = os.path.split(input_fasta_path)
+        parent_dir = fasta_dir.rsplit("/", 1)[0]
         fasta_name, suffix = os.path.splitext(fasta_file)
-        a3m_path = os.path.join(fasta_dir, fasta_name + ".a3m")
+        a3m_path = os.path.join(parent_dir, "a3m", fasta_name + ".a3m")
 
         with open(input_fasta_path) as f:
             input_fasta_str = f.read()
