@@ -75,7 +75,7 @@ flags.DEFINE_string('obsolete_pdbs_path', None,
                     'Path to file containing a mapping from obsolete PDB IDs '
                     'to the PDB IDs of their replacements.')
 # Other configs.
-flags.DEFINE_string('max_template_date', '2020-4-30',
+flags.DEFINE_string('max_template_date', '2021-12-25',
                     'Maximum template release date to consider. Important '
                     'if folding historical test sets.')
 flags.DEFINE_integer('random_seed', None,
