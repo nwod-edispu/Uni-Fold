@@ -681,8 +681,9 @@ def _process_single_hit(
     # Fail hard if we can't get the PDB ID and chain name from the hit.
     hit_pdb_code, hit_chain_id = _get_pdb_id_and_chain(hit)
 
+    # (hj) If one cif file was substituted several times?
     if hit_pdb_code not in release_dates:
-        if hit_pdb_code in obsolete_pdbs:
+        while hit_pdb_code in obsolete_pdbs:
             hit_pdb_code = obsolete_pdbs[hit_pdb_code]
 
     # Pass hit_pdb_code since it might have changed due to the pdb being obsolete.
