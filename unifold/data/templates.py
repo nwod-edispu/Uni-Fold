@@ -146,6 +146,11 @@ def _parse_obsolete(obsolete_file_path: str) -> Mapping[str, str]:
                 from_id = line[20:24].lower()
                 to_id = line[29:33].lower()
                 result[from_id] = to_id
+            # (hj) Why unifold remove this branch???
+            elif len(line) == 24:
+                # Removed.
+                from_id = line[20:24].lower()
+                result[from_id] = None
         return result
 
 
@@ -680,6 +685,11 @@ def _process_single_hit(
     """Tries to extract template features from a single HHSearch hit."""
     # Fail hard if we can't get the PDB ID and chain name from the hit.
     hit_pdb_code, hit_chain_id = _get_pdb_id_and_chain(hit)
+
+    # This hit has been removed (obsoleted) from PDB, skip it.
+    if hit_pdb_code in obsolete_pdbs and obsolete_pdbs[hit_pdb_code] is None:
+        return SingleHitResult(
+            features=None, error=None, warning=f'Hit {hit_pdb_code} is obsolete.')
 
     # (hj) If one cif file was substituted several times?
     if hit_pdb_code not in release_dates:
