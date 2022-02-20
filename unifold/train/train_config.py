@@ -86,9 +86,9 @@ train_config = ConfigDict({
         },
         'eval': {
             # Directory to store features (features.pkl files)
-            'features_dir': "/home/hanj/workplace/unifold_dataset/eval_set/features/",
+            'features_dir': None,
             # Directory to store labels (.mmcif files)
-            'mmcif_dir': "/home/hanj/workplace/unifold_dataset/eval_set/mmcif/",
+            'mmcif_dir': None,
             # Json file that specifies sampling weights of each sample.
             'sample_weights': None
         },
