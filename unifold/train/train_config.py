@@ -82,7 +82,7 @@ train_config = ConfigDict({
             # Directory to store labels (.mmcif files)
             'mmcif_dir': "./example_data/mmcif",
             # Json file that specifies sampling weights of each sample.
-            'sample_weights': None
+            'sample_weights': "./example_data/sample_weights.json"
         },
         'eval': {
             # Directory to store features (features.pkl files)
