@@ -78,19 +78,19 @@ train_config = ConfigDict({
     'data':{
         'train': {
             # Directory to store features (features.pkl files)
-            'features_dir': "./example_data/features",
+            'features_dir': "/home/hanj/workplace/unifold_dataset/training_set/features/",
             # Directory to store labels (.mmcif files)
-            'mmcif_dir': "./example_data/mmcif",
+            'mmcif_dir': "/home/hanj/workplace/unifold_dataset/training_set/mmcif/",
             # Json file that specifies sampling weights of each sample.
-            'sample_weights': "./example_data/sample_weights.json"
+            'sample_weights': None
         },
         'eval': {
             # Directory to store features (features.pkl files)
-            'features_dir': "./example_data/features",
+            'features_dir': "/home/hanj/workplace/unifold_dataset/eval_set/features/",
             # Directory to store labels (.mmcif files)
-            'mmcif_dir': "./example_data/mmcif",
+            'mmcif_dir': "/home/hanj/workplace/unifold_dataset/eval_set/mmcif/",
             # Json file that specifies sampling weights of each sample.
-            'sample_weights': "./example_data/sample_weights.json"
+            'sample_weights': None
         },
     }
 })
