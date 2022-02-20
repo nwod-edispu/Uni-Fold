@@ -98,9 +98,9 @@ def train(train_config):
     for step in range(gc.start_step, gc.end_step):
         update_rng, batch = get_queue_item(train_queue)
         trainer.train_step(step, batch, update_rng, silent=(not is_main_process))
-        if eval_data is not None and trainer.is_eval_step(step):
-            eval_rng, batch = get_queue_item(eval_queue)
-            trainer.eval_step(step, batch, eval_rng, silent=(not is_main_process))
+        # if eval_data is not None and trainer.is_eval_step(step):
+        #     eval_rng, batch = get_queue_item(eval_queue)
+        #     trainer.eval_step(step, batch, eval_rng, silent=(not is_main_process))
     logging.info("finished training.")
 
     if train_batch_proc.is_alive():
