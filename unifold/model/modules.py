@@ -1108,6 +1108,7 @@ class PredictedLDDTHead(hk.Module):
 
         # Shape (num_res, num_channel)
         logits = value['predicted_lddt']['logits']
+        print("labels: ", lddt_ca_one_hot.shape, ",logits:", logits.shape)
         errors = softmax_cross_entropy(labels=lddt_ca_one_hot, logits=logits)
 
         # Shape (num_res,)
