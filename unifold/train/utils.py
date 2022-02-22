@@ -134,6 +134,8 @@ def crop_and_pad(
 
         raw_features = {k: pad(k, v) for k, v in raw_features.items()}
         raw_labels = {k: pad(k, v) for k, v in raw_labels.items()}
+        print("utils", raw_labels['aatype_index'].shape, raw_labels['all_atom_positions'].shape,
+              raw_labels['all_atom_mask'].shape)
     elif num_res > crop_size:
         # crop long seq.
         np.random.seed(random_seed)
