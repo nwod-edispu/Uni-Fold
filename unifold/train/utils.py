@@ -22,6 +22,7 @@ import jax.numpy as jnp
 import jax.random as jrand
 from jax.experimental import optimizers as jopt
 from multiprocessing import Queue
+import os
 
 from unifold.common.residue_constants import restype_order_with_x
 from unifold.data.mmcif_parsing import MmcifObject
@@ -52,7 +53,7 @@ def load_features(path: str) -> FeatureDict:
     return pickle.load(open(path, 'rb'))
 
 
-def load_labels(cif_path: str, pdb_id: str, chain_id: str = 'A') -> FeatureDict:
+def load_labels(cif_path: str, fasta_dir: str, pdb_id: str, chain_id: str = 'A') -> FeatureDict:
     # get cif string
     cif_string = open(cif_path, 'r').read()
     # parse cif string
@@ -64,14 +65,24 @@ def load_labels(cif_path: str, pdb_id: str, chain_id: str = 'A') -> FeatureDict:
             mmcif_obj, chain_id, max_ca_ca_distance=float('inf'))
         # directly parses sequence from fasta. should be consistent to 'aatype' in input features (from .fasta or .pkl)
         sequence = cif_to_fasta(mmcif_obj, chain_id)
+
+        # hj: The rosetta sequence is cropped, so we need to align the fasta sequence
+        fasta_path = os.path.join(fasta_dir, pdb_id + "_1_" + chain_id + ".fasta")
+        with open(fasta_path) as f:
+            f.readline()
+            origin_seq = f.readline().strip()
+        begin = sequence.find(origin_seq, 0, len(sequence))
+        assert begin != -1
+        end = begin + len(sequence)
+
         aatype_idx = np.array(
             [restype_order_with_x[rn] for rn in sequence])
         resolution = np.array(
             [mmcif_obj.header['resolution']])
     return {
-        'aatype_index': aatype_idx,  # [NR,]
-        'all_atom_positions': all_atom_positions,  # [NR, 37, 3]
-        'all_atom_mask': all_atom_mask,  # [NR, 37]
+        'aatype_index': aatype_idx[begin:end, ...],  # [NR,]
+        'all_atom_positions': all_atom_positions[begin:end, ...],  # [NR, 37, 3]
+        'all_atom_mask': all_atom_mask[begin:end, ...],  # [NR, 37]
         'resolution': resolution  # [,]
     }
 
