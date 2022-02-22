@@ -1036,7 +1036,7 @@ class PredictedLDDTHead(hk.Module):
     def __call__(self, representations, batch, is_training):
         """Builds ExperimentallyResolvedHead module.
 
-        Arguments:
+        Arguments:pri
           representations: Dictionary of representations, must contain:
             * 'structure_module': Single representation from the structure module,
                  shape [N_res, c_s].
@@ -1108,7 +1108,6 @@ class PredictedLDDTHead(hk.Module):
 
         # Shape (num_res, num_channel)
         logits = value['predicted_lddt']['logits']
-        print("labels: ", lddt_ca_one_hot.shape, ",logits:", logits.shape)
         errors = softmax_cross_entropy(labels=lddt_ca_one_hot, logits=logits)
 
         # Shape (num_res,)
@@ -1426,6 +1425,7 @@ def _distogram_log_loss(logits, bin_edges, batch, num_bins):
 
     true_bins = jnp.sum(dist2 > sq_breaks, axis=-1)
 
+    print("true_bins", true_bins.shape, "num_bins", num_bins, "logits", logits.shape)
     errors = softmax_cross_entropy(
         labels=jax.nn.one_hot(true_bins, num_bins), logits=logits)
 
