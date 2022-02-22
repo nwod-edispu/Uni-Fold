@@ -1425,7 +1425,6 @@ def _distogram_log_loss(logits, bin_edges, batch, num_bins):
 
     true_bins = jnp.sum(dist2 > sq_breaks, axis=-1)
 
-    print("true_bins", true_bins.shape, "num_bins", num_bins, "logits", logits.shape)
     errors = softmax_cross_entropy(
         labels=jax.nn.one_hot(true_bins, num_bins), logits=logits)
 
