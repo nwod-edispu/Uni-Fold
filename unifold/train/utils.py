@@ -150,6 +150,7 @@ def crop_and_pad(
 
         raw_features = {k: crop(k, v) for k, v in raw_features.items()}
         raw_labels = {k: crop(k, v) for k, v in raw_labels.items()}
+        print("utils",raw_labels['aatype_index'].shape, raw_labels['all_atom_positions'].shape, raw_labels['all_atom_mask'].shape)
     else:
         # seq len == crop size
         pass
