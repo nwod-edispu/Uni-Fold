@@ -96,7 +96,7 @@ class DataSystem:
         pdb_id, chain_id = prot_info[0], prot_info[-1]
         raw_labels = utils.load_labels(
             cif_path=os.path.join(self.dc.mmcif_dir, pdb_id + '.cif'),
-            fasta_dir=self.dc.mmcif_dir.rsplit("/", 1)[0],
+            fasta_dir=self.dc.mmcif_dir.rsplit("/", 2)[0],
             pdb_id=pdb_id,
             chain_id=chain_id)
         return raw_features, raw_labels
