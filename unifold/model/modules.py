@@ -1413,6 +1413,7 @@ def _distogram_log_loss(logits, bin_edges, batch, num_bins):
     mask = batch['pseudo_beta_mask']
 
     assert positions.shape[-1] == 3
+    print("positions", positions.shape)
 
     sq_breaks = jnp.square(bin_edges)
 
