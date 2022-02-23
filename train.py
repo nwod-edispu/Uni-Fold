@@ -18,6 +18,7 @@
 import os
 
 os.environ['XLA_PYTHON_CLIENT_PREALLOCATE'] = 'false'
+XLA_PYTHON_CLIENT_PREALLOCATE = False
 from unifold.train.train_config import train_config
 
 use_mpi = train_config.global_config.use_mpi
