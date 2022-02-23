@@ -173,7 +173,7 @@ class DataSystem:
     def batch_gen(self, rng):
         with jax.disable_jit():
             while True:
-                rng, prot_idx = self.sample(rng, 2)
+                rng, prot_idx = self.sample(rng, None)
                 rng, batch_rng, batch = self.get_batch(prot_idx, rng)
                 yield batch_rng, batch
 
