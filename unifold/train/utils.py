@@ -136,23 +136,15 @@ def crop_and_pad(
             if is_ignored_key(key):
                 return array
             d_seq = 1 if is_batched_key(key) else 0  # choose the dim to crop / pad
-            if key == "aatype_index":
-                print("origin shape", array.shape, "num_res", num_res)
             pad_shape = list(array.shape)
             pad_shape[d_seq] = crop_size - num_res
             pad_array = np.zeros(pad_shape)
             pad_array = pad_array.astype(array.dtype)
-            if key == "aatype_index":
-                print("pad shape", pad_array.shape)
             array = np.concatenate([array, pad_array], axis=d_seq)
-            if key == "aatype_index":
-                print("result shape", array.shape)
             return array
 
         raw_features = {k: pad(k, v) for k, v in raw_features.items()}
         raw_labels = {k: pad(k, v) for k, v in raw_labels.items()}
-        print("padding", raw_labels['aatype_index'].shape, raw_labels['all_atom_positions'].shape,
-              raw_labels['all_atom_mask'].shape)
     elif num_res > crop_size:
         # crop long seq.
         np.random.seed(random_seed)

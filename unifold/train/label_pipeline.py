@@ -231,7 +231,6 @@ def make_backbone_affine(prot):
 def make_pseudo_beta(prot):
     # ziyao: this function assumes jnp inputs.
     pseudo_beta_fn = pseudo_beta_fn_jnp
-    print(prot['aatype_index'].shape, prot['all_atom_positions'].shape, prot['all_atom_mask'].shape)
     prot['pseudo_beta'], prot['pseudo_beta_mask'] = (
         pseudo_beta_fn(
             prot['aatype_index'],
