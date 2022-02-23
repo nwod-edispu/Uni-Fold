@@ -26,6 +26,8 @@ if __name__ == "__main__":
         chain_id = parts[2].split(".")[0].strip()
         cif_path = os.path.join(cif_dir, pdb_id + ".cif")
         cif_string = open(cif_path, 'r').read()
+        print(fasta)
+        print(cif_path)
         # parse cif string
         mmcif_obj = parse_mmcif_string(
             file_id=pdb_id, mmcif_string=cif_string).mmcif_object
