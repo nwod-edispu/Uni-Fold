@@ -73,7 +73,7 @@ def load_labels(cif_path: str, fasta_dir: str, pdb_id: str, chain_id: str = 'A')
             origin_seq = f.readline().strip()
         begin = sequence.find(origin_seq, 0, len(sequence))
         assert begin != -1
-        end = begin + len(sequence)
+        end = begin + len(origin_seq)
 
         aatype_idx = np.array(
             [restype_order_with_x[rn] for rn in sequence])
@@ -161,8 +161,6 @@ def crop_and_pad(
 
         raw_features = {k: crop(k, v) for k, v in raw_features.items()}
         raw_labels = {k: crop(k, v) for k, v in raw_labels.items()}
-        print("utils", raw_labels['aatype_index'].shape, raw_labels['all_atom_positions'].shape,
-              raw_labels['all_atom_mask'].shape)
     else:
         # seq len == crop size
         pass
