@@ -27,7 +27,7 @@ if __name__ == "__main__":
         pdb_id = parts[0].strip()
         chain_id = parts[2].split(".")[0].strip()
         cif_path = os.path.join(cif_dir, pdb_id + ".cif")
-        feature_path = os.path.join(feature_dir, pdb_id + "_1_" + chain_id + ".pkl")
+        feature_path = os.path.join(feature_dir, pdb_id + "_1_" + chain_id)
         cif_string = open(cif_path, 'r').read()
         # print(fasta)
         # print(cif_path)
