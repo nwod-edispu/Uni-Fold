@@ -19,12 +19,15 @@ def cif_to_fasta(mmcif_object: MmcifObject,
 if __name__ == "__main__":
     fasta_dir = "/home/hanj/workplace/unifold_dataset/training_set/fasta/"
     cif_dir = "/home/hanj/workplace/unifold_dataset/training_set/mmcif/"
+    feature_dir = "/home/hanj/workplace/unifold_dataset/training_set/features/"
+    out_dir = "/home/hanj/workplace/unifold_dataset/training_set/raw_features/"
     cnt = 0
     for fasta in os.listdir(fasta_dir):
         parts = fasta.split("_")
         pdb_id = parts[0].strip()
         chain_id = parts[2].split(".")[0].strip()
         cif_path = os.path.join(cif_dir, pdb_id + ".cif")
+        feature_path = os.path.join(feature_dir, pdb_id + "_1_" + chain_id + ".pkl")
         cif_string = open(cif_path, 'r').read()
         # print(fasta)
         # print(cif_path)
@@ -38,6 +41,7 @@ if __name__ == "__main__":
                 sequence = cif_to_fasta(mmcif_obj, chain_id)
             except:
                 cnt += 1
+                os.system(f"mv {feature_path} {out_dir}")
                 continue
 
             # hj: The rosetta sequence is cropped, so we need to align the fasta sequence
@@ -48,4 +52,5 @@ if __name__ == "__main__":
             begin = sequence.find(origin_seq, 0, len(sequence))
             if begin == -1:
                 cnt += 1
+                os.system(f"mv {feature_path} {out_dir}")
     print("fasta with no cif: ", cnt)
