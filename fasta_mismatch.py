@@ -8,6 +8,7 @@ from Bio.PDB import protein_letters_3to1
 
 def cif_to_fasta(mmcif_object: MmcifObject,
                  chain_id: str) -> str:
+    print(mmcif_object.seqres_to_structure.keys())
     residues = mmcif_object.seqres_to_structure[chain_id]
     residue_names = [residues[t].name for t in range(len(residues))]
     residue_letters = [protein_letters_3to1.get(n, 'X') for n in residue_names]
