@@ -1910,7 +1910,6 @@ class EmbeddingsAndEvoformer(hk.Module):
             return (evoformer_output, safe_key)
 
         if gc.use_remat:
-            print("using rematerialization")
             evoformer_fn = hk.remat(evoformer_fn)
 
         evoformer_stack = layer_stack.layer_stack(c.evoformer_num_block)(
