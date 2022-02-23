@@ -8,7 +8,6 @@ from Bio.PDB import protein_letters_3to1
 
 def cif_to_fasta(mmcif_object: MmcifObject,
                  chain_id: str) -> str:
-    print(mmcif_object.seqres_to_structure.keys())
     residues = mmcif_object.seqres_to_structure[chain_id]
     residue_names = [residues[t].name for t in range(len(residues))]
     residue_letters = [protein_letters_3to1.get(n, 'X') for n in residue_names]
@@ -27,15 +26,19 @@ if __name__ == "__main__":
         chain_id = parts[2].split(".")[0].strip()
         cif_path = os.path.join(cif_dir, pdb_id + ".cif")
         cif_string = open(cif_path, 'r').read()
-        print(fasta)
-        print(cif_path)
+        # print(fasta)
+        # print(cif_path)
         # parse cif string
         mmcif_obj = parse_mmcif_string(
             file_id=pdb_id, mmcif_string=cif_string).mmcif_object
         # fetch useful labels
         if mmcif_obj is not None:
-            # directly parses sequence from fasta. should be consistent to 'aatype' in input features (from .fasta or .pkl)
-            sequence = cif_to_fasta(mmcif_obj, chain_id)
+            try:
+                # directly parses sequence from fasta. should be consistent to 'aatype' in input features (from .fasta or .pkl)
+                sequence = cif_to_fasta(mmcif_obj, chain_id)
+            except:
+                cnt += 1
+                continue
 
             # hj: The rosetta sequence is cropped, so we need to align the fasta sequence
             fasta_path = os.path.join(fasta_dir, fasta)
