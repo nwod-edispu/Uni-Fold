@@ -23,7 +23,7 @@ if __name__ == "__main__":
     for fasta in os.listdir(fasta_dir):
         parts = fasta.split("_")
         pdb_id = parts[0].strip()
-        chain_id = parts[2].strip()
+        chain_id = parts[2].split(".")[0].strip()
         cif_path = os.path.join(cif_dir, pdb_id + ".cif")
         cif_string = open(cif_path, 'r').read()
         # parse cif string
