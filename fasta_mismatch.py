@@ -19,7 +19,7 @@ def cif_to_fasta(mmcif_object: MmcifObject,
 if __name__ == "__main__":
     fasta_dir = "/home/hanj/workplace/unifold_dataset/training_set/fasta/"
     cif_dir = "/home/hanj/workplace/unifold_dataset/training_set/mmcif/"
-    cnt=0
+    cnt = 0
     for fasta in os.listdir(fasta_dir):
         parts = fasta.split("_")
         pdb_id = parts[0].strip()
@@ -31,8 +31,6 @@ if __name__ == "__main__":
             file_id=pdb_id, mmcif_string=cif_string).mmcif_object
         # fetch useful labels
         if mmcif_obj is not None:
-            all_atom_positions, all_atom_mask = get_atom_positions(
-                mmcif_obj, chain_id, max_ca_ca_distance=float('inf'))
             # directly parses sequence from fasta. should be consistent to 'aatype' in input features (from .fasta or .pkl)
             sequence = cif_to_fasta(mmcif_obj, chain_id)
 
