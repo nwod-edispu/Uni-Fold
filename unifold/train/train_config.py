@@ -26,7 +26,7 @@ train_config = ConfigDict({
         # Setting this config to 'unifold' to reproduce Uni-Fold, or 'demo' 
         # for fast demonstration. You can also customize your own model config 
         # in `unifold/model/config.py` and specify it here.
-        'model_name': 'demo',
+        'model_name': 'unifold',
         # Verbosity of logging messages.
         'verbose': 'info',
         # The number of processes/gpus per node
@@ -55,7 +55,7 @@ train_config = ConfigDict({
         'precision': 'fp32',
         # Max queue size. Specifies the queue size of the pre-processed
         # batches. Generally has little impact on code efficiency.
-        'max_queue_size': 16,
+        'max_queue_size': 32,
         # Random seed for initializing model parameters. Ignored when attempting to auto load ckpts.
         'random_seed': 181129
     },
