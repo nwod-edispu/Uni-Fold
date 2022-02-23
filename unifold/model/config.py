@@ -105,7 +105,7 @@ CONFIG_DIFFS = {
 
 CONFIG_FOR_TRAIN = {
     'data.eval.subsample_templates': True,
-    'model.global_config.use_remat': False
+    'model.global_config.use_remat': True
 }
 
 CONFIG_FOR_PTM = {
