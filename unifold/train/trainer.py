@@ -199,7 +199,8 @@ class Trainer:
     def autoload(self, step, format='pkl'):
         # load ckpt
         load_path = os.path.join(self.gc.load_dir, self.auto_ckpt_name(step, format))
-        self.optimizer.load(load_path)
+        # hj: miss assign?
+        self.optim_state = self.optimizer.load(load_path)
         # load loss curve
         train_curve_path = os.path.join(self.gc.save_dir, self.auto_curve_name(is_train=True))
         eval_curve_path = os.path.join(self.gc.save_dir, self.auto_curve_name(is_train=False))
