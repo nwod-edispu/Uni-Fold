@@ -30,7 +30,7 @@ train_config = ConfigDict({
         # Verbosity of logging messages.
         'verbose': 'info',
         # The number of processes/gpus per node
-        'gpus_per_node': 8,
+        'gpus_per_node': 2,
         # The format for autoloading the checkpoint, choose from 'pkl' and 
         # 'npz'. Note that `pkl` format stores necessary variables of 
         # optimizers, yet `npz` saves only model parameters.
