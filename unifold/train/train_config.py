@@ -57,7 +57,7 @@ train_config = ConfigDict({
         # batches. Generally has little impact on code efficiency.
         'max_queue_size': 32,
         # Random seed for initializing model parameters. Ignored when attempting to auto load ckpts.
-        'random_seed': 181129
+        'random_seed': 181329
     },
     'optimizer': {
         # Optimizer class.
