@@ -149,7 +149,7 @@ class DataSystem:
             prot_idx,
             rng):
         prot_name = self.prot_keys[prot_idx % self.num_prot]
-        logging.info(f"loading protein #{prot_idx:06d}: {prot_name}...")
+        logging.debug(f"loading protein #{prot_idx:06d}: {prot_name}...")
         raw_features, raw_labels = self.load(prot_name)
         resolution = raw_labels.pop('resolution')
         rng, batch = self.preprocess(rng, raw_features, raw_labels)
@@ -174,7 +174,12 @@ class DataSystem:
         with jax.disable_jit():
             while True:
                 rng, prot_idx = self.sample(rng, None)
-                rng, batch_rng, batch = self.get_batch(prot_idx, rng)
+                try:
+                    rng, batch_rng, batch = self.get_batch(prot_idx, rng)
+                except IndexError:
+                    prot_name = self.prot_keys[prot_idx % self.num_prot]
+                    logging.warning(f"loading protein #{prot_idx:06d}: {prot_name}...")
+                    continue
                 yield batch_rng, batch
 
     @staticmethod
