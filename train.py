@@ -28,7 +28,7 @@ if use_mpi:
     mpi_comm = MPI.COMM_WORLD
     mpi_rank = mpi_comm.Get_rank()
     is_main_process = (mpi_rank == 0)
-    os.environ['CUDA_VISIBLE_DEVICES'] = str(mpi_rank % train_config.global_config.gpus_per_node)
+    os.environ['CUDA_VISIBLE_DEVICES'] = str(mpi_rank % train_config.global_config.gpus_per_node + 3)
 else:  # assume single gpu is used.
     mpi_comm = None
     mpi_rank = 0
