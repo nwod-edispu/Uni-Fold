@@ -20,7 +20,7 @@ from ml_collections import ConfigDict
 train_config = ConfigDict({
     'global_config':{
         # whether you are using MPI communication for multi-gpu training.
-        'use_mpi': False,
+        'use_mpi': True,
         # This specifies a model config defined in `unifold/model/config.py`. 
         # 'model_1' to 'model_5' are the settings used in the AlphaFold paper.
         # Setting this config to 'unifold' to reproduce Uni-Fold, or 'demo' 
