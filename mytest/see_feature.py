@@ -1,4 +1,6 @@
 import pickle
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 def gen():
@@ -17,8 +19,9 @@ def gen():
 
 
 def main():
-    a = gen()
-    print(next(a))
+    data = np.load("G://6years//out//unifold_train_curve.npy")
+    plt.plot(data[:, 0], data[:, 1])
+    plt.show()
 
 
 if __name__ == "__main__":
