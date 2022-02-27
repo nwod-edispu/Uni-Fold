@@ -44,7 +44,7 @@ train_config = ConfigDict({
         # Frequency of validation.
         'eval_freq': 50,
         # Frequency of saving ckpts.
-        'save_freq': 50,
+        'save_freq': 500,
         # Directory to save ckpts. used for auto-saving ckpts.
         'save_dir': '../out/ckpt_8',
         # Directory to load ckpts. used for auto-loading ckpts.

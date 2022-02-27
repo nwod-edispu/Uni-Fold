@@ -286,7 +286,7 @@ def _convert_cif_to_pdb(identifier, ranges, chain_type, row_type, indir, outdir,
     if not outfile:
         outfile = identifier
 
-    with open(join(outdir, "%s.pdb" % (outfile)), "w") as f:
+    with open(os.path.join(outdir, "%s.pdb" % (outfile)), "w") as f:
         for line in pdb_atoms:
             f.write(line)
         f.write("TER\n")
