@@ -55,7 +55,7 @@ train_config = ConfigDict({
         'precision': 'bf32',
         # Max queue size. Specifies the queue size of the pre-processed
         # batches. Generally has little impact on code efficiency.
-        'max_queue_size': 32,
+        'max_queue_size': 64,
         # Random seed for initializing model parameters. Ignored when attempting to auto load ckpts.
         'random_seed': 1813229
     },
