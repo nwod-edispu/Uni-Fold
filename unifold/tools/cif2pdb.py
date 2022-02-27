@@ -279,7 +279,7 @@ def _convert_cif_to_pdb(identifier, ranges, chain_type, row_type, indir, outdir,
 
     if ranges:
         residues_to_fetch = cif2pdb.resid.transform_ranges(ranges)
-        pdb_atoms = cif2pdb.resid.get_atoms_for_residues(pdb_atoms, residues_to_fetch)
+        pdb_atoms = resid.get_atoms_for_residues(pdb_atoms, residues_to_fetch)
 
     # Save .pdb file
 
