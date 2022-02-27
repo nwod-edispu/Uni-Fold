@@ -23,6 +23,7 @@ import json
 from multiprocessing import Process, Queue
 import numpy as np
 import os
+import pickle
 
 from unifold.common.residue_constants import sequence_to_onehot
 from unifold.model.features import FeatureDict
@@ -181,6 +182,17 @@ class DataSystem:
                     logging.warning(f"loading protein #{prot_idx:06d}: {prot_name}...")
                     continue
                 yield batch_rng, batch
+
+    def precompute_features(self, rng, out_dir):
+        """
+        Add by hj, for computing the features ahead to accelerate the data loader
+        """
+        for index in range(self.num_prot):
+            _, rng, batch = self.get_batch(index, rng)
+            prot_name = self.prot_keys[index % self.num_prot]
+            with open(os.path.join(out_dir, prot_name), 'wb') as f:
+                pickle.dump(batch, f, protocol=4)
+
 
     @staticmethod
     def get_sample_weights_from_dir(features_dir):
