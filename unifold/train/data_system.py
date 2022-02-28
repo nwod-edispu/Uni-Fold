@@ -187,10 +187,14 @@ class DataSystem:
         """
         Add by hj, for computing the features ahead to accelerate the data loader
         """
-        for index in range(self.num_prot):
+        for index in range(200, self.num_prot):
             if index % 100 == 0:
                 print(index)
-            _, rng, batch = self.get_batch(index, rng)
+            try:
+                _, rng, batch = self.get_batch(index, rng)
+            except IndexError:
+                print("prot_name: ", self.prot_keys[index % self.num_prot])
+                raise IndexError
             prot_name = self.prot_keys[index % self.num_prot]
             with open(os.path.join(out_dir, prot_name), 'wb') as f:
                 pickle.dump(batch, f, protocol=4)

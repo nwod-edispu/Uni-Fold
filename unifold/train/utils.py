@@ -137,7 +137,14 @@ def crop_and_pad(
                 return array
             d_seq = 1 if is_batched_key(key) else 0  # choose the dim to crop / pad
             pad_shape = list(array.shape)
-            pad_shape[d_seq] = crop_size - num_res
+            try:
+                pad_shape[d_seq] = crop_size - num_res
+            except IndexError:
+                print("array.shape: ", array.shape)
+                print("d_seq: ", d_seq)
+                print("key: ", key)
+                raise IndexError
+
             pad_array = np.zeros(pad_shape)
             pad_array = pad_array.astype(array.dtype)
             array = np.concatenate([array, pad_array], axis=d_seq)
