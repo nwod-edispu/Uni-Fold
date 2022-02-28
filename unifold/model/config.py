@@ -88,7 +88,8 @@ CONFIG_DIFFS = {
         'data.common.reduce_msa_clusters_by_max_templates': True,
         'data.common.use_templates': True,
         'model.embeddings_and_evoformer.template.embed_torsion_angles': True,
-        'model.embeddings_and_evoformer.template.enabled': True
+        'model.embeddings_and_evoformer.template.enabled': True,
+        'model.heads.experimentally_resolved.weight': 0.0
     },
     'model_3': {
         # Jumper et al. (2021) Suppl. Table 5, Model 1.2.1
