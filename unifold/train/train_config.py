@@ -52,7 +52,7 @@ train_config = ConfigDict({
         'load_dir': '../out/small',
         # Training precision, generally in ['fp32', 'bf16'].
         # Set for mixed precision training.
-        'precision': 'bf16',
+        'precision': 'fp32',
         # Max queue size. Specifies the queue size of the pre-processed
         # batches. Generally has little impact on code efficiency.
         'max_queue_size': 64,
