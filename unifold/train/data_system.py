@@ -194,7 +194,7 @@ class DataSystem:
                 _, rng, batch = self.get_batch(index, rng)
             except IndexError:
                 print("prot_name: ", self.prot_keys[index % self.num_prot])
-                raise IndexError
+                continue
             prot_name = self.prot_keys[index % self.num_prot]
             with open(os.path.join(out_dir, prot_name), 'wb') as f:
                 pickle.dump(batch, f, protocol=4)
