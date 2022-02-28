@@ -26,7 +26,7 @@ train_config = ConfigDict({
         # Setting this config to 'unifold' to reproduce Uni-Fold, or 'demo' 
         # for fast demonstration. You can also customize your own model config 
         # in `unifold/model/config.py` and specify it here.
-        'model_name': 'model_2',
+        'model_name': 'model_3',
         # Verbosity of logging messages.
         'verbose': 'info',
         # The number of processes/gpus per node
@@ -52,7 +52,7 @@ train_config = ConfigDict({
         'load_dir': '../out/small',
         # Training precision, generally in ['fp32', 'bf16'].
         # Set for mixed precision training.
-        'precision': 'bf16',
+        'precision': 'fp32',
         # Max queue size. Specifies the queue size of the pre-processed
         # batches. Generally has little impact on code efficiency.
         'max_queue_size': 64,
