@@ -4,7 +4,8 @@ import jax.random as jrand
 from unifold.train.train_config import train_config
 from unifold.model.config import model_config as get_model_config
 from unifold.train.data_system import DataSystem
-
+os.environ['XLA_PYTHON_CLIENT_PREALLOCATE'] = 'false'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 def precompute_features(rng, out_dir):
     gc = train_config.global_config
