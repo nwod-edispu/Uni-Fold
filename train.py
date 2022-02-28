@@ -17,7 +17,7 @@
 # OS & MPI config. please config before any import of jax / tf.
 import os
 
-# os.environ['XLA_PYTHON_CLIENT_PREALLOCATE'] = 'false'
+os.environ['XLA_PYTHON_CLIENT_PREALLOCATE'] = 'false'
 os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 from unifold.train.train_config import train_config
 
