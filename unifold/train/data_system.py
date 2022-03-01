@@ -197,8 +197,9 @@ class DataSystem:
             #     print("prot_name: ", self.prot_keys[index % self.num_prot])
             #     continue
             prot_name = self.prot_keys[index % self.num_prot]
-            fname = os.path.join(out_dir, prot_name)
-            os.rename(fname, fname + ".pkl")
+            if not prot_name.contains(".pkl"):
+                fname = os.path.join(out_dir, prot_name)
+                os.rename(fname, fname + ".pkl")
             # with open(os.path.join(out_dir, prot_name), 'wb') as f:
             #     pickle.dump(batch, f, protocol=4)
 
