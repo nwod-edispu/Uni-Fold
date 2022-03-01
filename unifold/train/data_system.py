@@ -197,7 +197,7 @@ class DataSystem:
             #     print("prot_name: ", self.prot_keys[index % self.num_prot])
             #     continue
             prot_name = self.prot_keys[index % self.num_prot]
-            if not prot_name.contains(".pkl"):
+            if not (".pkl" in prot_name):
                 fname = os.path.join(out_dir, prot_name)
                 os.rename(fname, fname + ".pkl")
             # with open(os.path.join(out_dir, prot_name), 'wb') as f:
