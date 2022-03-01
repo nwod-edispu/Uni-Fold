@@ -20,7 +20,7 @@ def main():
     random_seed = 2163783
     with jax.disable_jit():
         rng = jrand.PRNGKey(random_seed)
-    out_dir = "/home/hanj/workplace/unifold_dataset/training_set/features_done/"
+    out_dir = "/home/hanj/workplace/unifold_dataset/training_set/features_demo/"
     precompute_features(rng, out_dir)
 
 
