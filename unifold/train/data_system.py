@@ -118,7 +118,6 @@ class DataSystem:
             raw_features,
             config=self.mc,
             random_seed=feat_seed)
-        print(processed_features["aatype"])
         with jax.disable_jit():  # using jit here is experimentally slower
             processed_labels = process_labels(raw_labels)
         batch = {**processed_features, **processed_labels}
@@ -190,7 +189,7 @@ class DataSystem:
         """
         Add by hj, for computing the features ahead to accelerate the data loader
         """
-        for index in range(0, 1):
+        for index in range(0, self.num_prot):
             if index % 100 == 0:
                 print(index)
             try:
