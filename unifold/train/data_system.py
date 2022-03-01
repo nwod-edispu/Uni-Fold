@@ -192,18 +192,18 @@ class DataSystem:
         for index in range(self.num_prot):
             if index % 100 == 0:
                 print(index)
-            # try:
-            #     _, rng, batch = self.get_batch(index, rng)
-            #     print(type(batch["chi_angles_sin_cos"]))
-            # except (IndexError, UnboundLocalError):
-            #     print("prot_name: ", self.prot_keys[index % self.num_prot])
-            #     continue
-            prot_name = self.prot_keys[index % self.num_prot]
-            fname = os.path.join(out_dir, prot_name)
-            if not os.path.exists(fname + ".pkl"):
-                os.rename(fname, fname + ".pkl")
-            # with open(os.path.join(out_dir, prot_name), 'wb') as f:
-            #     pickle.dump(batch, f, protocol=4)
+            try:
+                _, rng, batch = self.get_batch(index, rng)
+                # print(type(batch["chi_angles_sin_cos"]))
+            except (IndexError, UnboundLocalError):
+                print("prot_name: ", self.prot_keys[index % self.num_prot])
+                continue
+            prot_name = self.prot_keys[index]
+            fname = os.path.join(out_dir, prot_name) + ".pkl"
+            # if not os.path.exists(fname + ".pkl"):
+            #     os.rename(fname, fname + ".pkl")
+            with open(fname, 'wb') as f:
+                pickle.dump(batch, f, protocol=4)
 
     @staticmethod
     def get_sample_weights_from_dir(features_dir):
