@@ -192,7 +192,7 @@ class DataSystem:
                 print(index)
             try:
                 _, rng, batch = self.get_batch(index, rng)
-                print(batch)
+                print(type(batch["chi_angles_sin_cos"]))
             except (IndexError, UnboundLocalError):
                 print("prot_name: ", self.prot_keys[index % self.num_prot])
                 continue
