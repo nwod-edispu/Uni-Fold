@@ -187,16 +187,18 @@ class DataSystem:
         """
         Add by hj, for computing the features ahead to accelerate the data loader
         """
-        for index in range(6700, 6701):
+        for index in range(self.num_prot):
             if index % 100 == 0:
                 print(index)
-            try:
-                _, rng, batch = self.get_batch(index, rng)
-                print(type(batch["chi_angles_sin_cos"]))
-            except (IndexError, UnboundLocalError):
-                print("prot_name: ", self.prot_keys[index % self.num_prot])
-                continue
-            # prot_name = self.prot_keys[index % self.num_prot]
+            # try:
+            #     _, rng, batch = self.get_batch(index, rng)
+            #     print(type(batch["chi_angles_sin_cos"]))
+            # except (IndexError, UnboundLocalError):
+            #     print("prot_name: ", self.prot_keys[index % self.num_prot])
+            #     continue
+            prot_name = self.prot_keys[index % self.num_prot]
+            fname = os.path.join(out_dir, prot_name)
+            os.rename(fname, fname + ".pkl")
             # with open(os.path.join(out_dir, prot_name), 'wb') as f:
             #     pickle.dump(batch, f, protocol=4)
 
