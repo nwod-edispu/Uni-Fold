@@ -190,7 +190,7 @@ class DataSystem:
         """
         Add by hj, for computing the features ahead to accelerate the data loader
         """
-        for index in range(0, 0):
+        for index in range(0, 1):
             if index % 100 == 0:
                 print(index)
             try:
