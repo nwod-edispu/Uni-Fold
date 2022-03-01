@@ -187,11 +187,12 @@ class DataSystem:
         """
         Add by hj, for computing the features ahead to accelerate the data loader
         """
-        for index in range(6700, self.num_prot):
+        for index in range(6700, 6701):
             if index % 100 == 0:
                 print(index)
             try:
                 _, rng, batch = self.get_batch(index, rng)
+                print(type(batch))
             except (IndexError, UnboundLocalError):
                 print("prot_name: ", self.prot_keys[index % self.num_prot])
                 continue
