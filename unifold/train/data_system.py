@@ -153,10 +153,10 @@ class DataSystem:
         logging.debug(f"loading protein #{prot_idx:06d}: {prot_name}...")
         raw_features, raw_labels = self.load(prot_name)
         resolution = raw_labels.pop('resolution')
-        print(raw_features)
-        print(raw_labels)
         rng, batch = self.preprocess(rng, raw_features, raw_labels)
         print(batch)
+        print(prot_name)
+        print(batch["aatype"])
         batch['resolution'] = resolution
         # done_features = "/home/hanj/workplace/unifold_dataset/training_set/features_done/" + prot_name + ".pkl"
         # batch = pickle.load(open(done_features, "rb"))
