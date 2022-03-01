@@ -151,10 +151,12 @@ class DataSystem:
             rng):
         prot_name = self.prot_keys[prot_idx % self.num_prot]
         logging.debug(f"loading protein #{prot_idx:06d}: {prot_name}...")
-        raw_features, raw_labels = self.load(prot_name)
-        resolution = raw_labels.pop('resolution')
-        rng, batch = self.preprocess(rng, raw_features, raw_labels)
-        batch['resolution'] = resolution
+        # raw_features, raw_labels = self.load(prot_name)
+        # resolution = raw_labels.pop('resolution')
+        # rng, batch = self.preprocess(rng, raw_features, raw_labels)
+        # batch['resolution'] = resolution
+        done_features = "/home/hanj/workplace/unifold_dataset/training_set/features_done/" + prot_name + ".pkl"
+        batch = pickle.load(open(done_features, "rb"))
         rng, batch_rng = jrand.split(rng, 2)
         return rng, batch_rng, batch
 

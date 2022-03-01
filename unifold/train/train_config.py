@@ -26,7 +26,7 @@ train_config = ConfigDict({
         # Setting this config to 'unifold' to reproduce Uni-Fold, or 'demo' 
         # for fast demonstration. You can also customize your own model config 
         # in `unifold/model/config.py` and specify it here.
-        'model_name': 'model_2',
+        'model_name': 'demo',
         # Verbosity of logging messages.
         'verbose': 'info',
         # The number of processes/gpus per node
