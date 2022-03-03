@@ -165,16 +165,18 @@ class Trainer:
         def add_pytrees(pytree1, pytree2):
             return tree_map(lambda pt1, pt2: pt1 + pt2, pytree1, pytree2)
 
-        def get_mini_batch(multi_batch, start, end):
-            return {
-                k: v[start:end, ...] for k, v in multi_batch.items()
-            }
+        def get_mini_batch(multi_batch, batch_idx, num_batch):
+            mini_batch = {}
+            for k, v in multi_batch.items():
+                r = v.shape[0]
+                len_per_batch = r // num_batch
+                mini_batch[k] = v[batch_idx * len_per_batch:len_per_batch, ...]
+            return mini_batch
 
         # define update_fn.
         def _update_fn(step, opt_state, multi_batch, rng):
-            len_per_batch = self.mc.eval.num_ensemble * (self.mc.num_recycle + 1)
-            num_batch = multi_batch.shape[0] // len_per_batch
-            batch0 = get_mini_batch(multi_batch, 0, len_per_batch)
+            num_batch = self.gc.accumulation_size
+            batch0 = get_mini_batch(multi_batch, 0, num_batch)
             loss, grads = jax.value_and_grad(_loss_fn)(
                 self.optimizer.get_params(opt_state), batch0, rng)
             print(loss)
@@ -184,8 +186,8 @@ class Trainer:
             loss /= num_batch
             grads = divide_pytree(grads, num_batch)
 
-            for k in range(len_per_batch, multi_batch.shape[0], len_per_batch):
-                batchi = get_mini_batch(multi_batch, k, len_per_batch)
+            for k in range(1, num_batch):
+                batchi = get_mini_batch(multi_batch, k, num_batch)
                 new_loss, new_grads = jax.value_and_grad(_loss_fn)(
                     self.optimizer.get_params(opt_state), batchi, rng)
                 print(new_loss)
