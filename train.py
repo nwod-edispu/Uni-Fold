@@ -101,7 +101,7 @@ def train(train_config):
         for i in range(gc.accumulation_size):
             update_rng, batch = get_queue_item(train_queue)
             multi_batch.append(batch)
-        return multi_batch
+        return update_rng, multi_batch
 
     # conduct training
     logging.info("training ...")
