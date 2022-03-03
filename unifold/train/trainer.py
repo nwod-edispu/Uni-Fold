@@ -212,6 +212,8 @@ class Trainer:
                 new_grads = _mpi_reduce_tree(new_grads)
             # acc_loss += new_loss / num_batch
             # acc_grads = add_pytrees(acc_grads, divide_pytree(new_grads, num_batch))
+            # grads = self.optimizer.clip_grads(new_grads)
+            # self.optim_state = self.optimizer.opt_update(step, new_grads, self.optim_state)
             return opt_state, acc_loss, acc_grads
 
         # define eval_fn for validation.
@@ -289,11 +291,6 @@ class Trainer:
             loss, grads = self.update(step, batch, rng, loss, grads)
         t2 = time.time()
         print("t2: ", t2 - t1)
-        grads = self.optimizer.clip_grads(grads)
-        self.optim_state = self.optimizer.opt_update(step, grads, self.optim_state)
-        t3 = time.time()
-
-        print("t3: ", t3 - t2)
         if not silent:
             if self.is_logging_step(step):
                 self._logging(step, loss)
