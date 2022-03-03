@@ -270,17 +270,12 @@ class Trainer:
         self._tic = time.time()
 
     def train_step(self, step, batch, rng, silent=True):
-        # t = time.time()
         # params = self.optimizer.get_params(self.optim_state)
         # grads = tree_map(lambda x: jnp.zeros_like(x), params)
-        t1 = time.time()
-        loss = 0.0
         # for i in range(len(multi_batch)):
         # batch = multi_batch[i]
         batch = cast_to_precision(batch, self.precision)
-        loss, grads = self.update(step, batch, rng, loss, None)
-        t2 = time.time()
-        print("t2: ", t2 - t1)
+        loss, grads = self.update(step, batch, rng, 0, None)
         if not silent:
             if self.is_logging_step(step):
                 self._logging(step, loss)
