@@ -281,7 +281,7 @@ class Trainer:
     def train_step(self, step, multi_batch, rng, silent=True):
         params = self.optimizer.get_params(self.optim_state)
         loss = 0.0
-        for i in range(multi_batch):
+        for i in range(len(multi_batch)):
             batch = multi_batch[i]
             batch = cast_to_precision(batch, self.precision)
             loss, grads = self.update(step, i, batch, rng, loss, tree_map(lambda x: jnp.zeros_like(x), params))
