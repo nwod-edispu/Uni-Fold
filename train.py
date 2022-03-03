@@ -92,23 +92,15 @@ def train(train_config):
         model_config=model_config,
         mpi_comm=mpi_comm)
 
-    def get_multi_bacth():
-        multi_batch = []
-        for _ in range(gc.accumulation_size):
-            update_rng, batch = get_queue_item(train_queue)
-            multi_batch.append(batch)
-        return update_rng, multi_batch
-
     logging.info("initializing ...")
     _, init_batch = get_queue_item(train_queue)  # do NOT use the returned rng to initialize trainer.
-    # _, init_batch = get_multi_bacth()
     trainer.initialize(init_batch, load_format=gc.ckpt_format)
 
     # conduct training
     logging.info("training ...")
     for step in range(gc.start_step, gc.end_step):
-        update_rng, multi_batch = get_queue_item(train_queue)
-        trainer.train_step(step, multi_batch, update_rng, silent=(not is_main_process))
+        update_rng, batch = get_queue_item(train_queue)
+        trainer.train_step(step, batch, update_rng, silent=(not is_main_process))
         # if eval_data is not None and trainer.is_eval_step(step):
         #     eval_rng, batch = get_queue_item(eval_queue)
         #     trainer.eval_step(step, batch, eval_rng, silent=(not is_main_process))
