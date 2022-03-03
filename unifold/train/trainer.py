@@ -169,15 +169,6 @@ class Trainer:
         def zero_pytree(pytree):
             return tree_map(lambda x: jnp.zeros_like(x), pytree)
 
-        def true_fun(args):
-            step, opt_state, loss, grads = args
-            grads = self.optimizer.clip_grads(grads)
-            opt_state = self.optimizer.opt_update(step, grads, opt_state)
-            return opt_state, loss, zero_pytree(grads)
-
-        def false_fun(args):
-            return args
-
         # define update_fn.
         # def _update_fn(step, opt_state, multi_batch, rng):
         #     num_batch = self.gc.accumulation_size
@@ -278,17 +269,17 @@ class Trainer:
         logging.info(f"step: {step:05d}\ttrain_loss: {loss:3.4f}\tstep_time: {step_time:.2f}s")
         self._tic = time.time()
 
-    def train_step(self, step, multi_batch, rng, silent=True):
+    def train_step(self, step, batch, rng, silent=True):
         t = time.time()
         params = self.optimizer.get_params(self.optim_state)
         grads = tree_map(lambda x: jnp.zeros_like(x), params)
         t1 = time.time()
         print("t1: ", t1 - t)
         loss = 0.0
-        for i in range(len(multi_batch)):
-            batch = multi_batch[i]
-            batch = cast_to_precision(batch, self.precision)
-            loss, grads = self.update(step, batch, rng, loss, grads)
+        # for i in range(len(multi_batch)):
+        # batch = multi_batch[i]
+        batch = cast_to_precision(batch, self.precision)
+        loss, grads = self.update(step, batch, rng, loss, grads)
         t2 = time.time()
         print("t2: ", t2 - t1)
         if not silent:

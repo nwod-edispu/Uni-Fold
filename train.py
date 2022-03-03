@@ -107,7 +107,7 @@ def train(train_config):
     # conduct training
     logging.info("training ...")
     for step in range(gc.start_step, gc.end_step):
-        update_rng, multi_batch = get_multi_bacth()
+        update_rng, multi_batch = get_queue_item(train_queue)
         trainer.train_step(step, multi_batch, update_rng, silent=(not is_main_process))
         # if eval_data is not None and trainer.is_eval_step(step):
         #     eval_rng, batch = get_queue_item(eval_queue)
