@@ -277,9 +277,20 @@ class Trainer:
         self._tic = time.time()
 
     def train_step(self, step, multi_batch, rng, silent=True):
-        params = self.optimizer.get_params(self.optim_state)
+        def get_zero_grads():
+            params = self.optimizer.get_params(self.optim_state)
+            grads = tree_map(lambda x: jnp.zeros_like(x), params)
+            return grads
+
+        def optimize_params(step, grads, optim_state):
+            grads = self.optimizer.clip_grads(grads)
+            self.optim_state = self.optimizer.opt_update(step, grads, optim_state)
+
+        get_zero_grads_jit = jax.jit(get_zero_grads)
+        optimize_params_jit = jax.jit(optimize_params)
+
         t = time.time()
-        grads = tree_map(lambda x: jnp.zeros_like(x), params)
+        grads = get_zero_grads_jit()
         t1 = time.time()
         print("t1: ", t1 - t)
         loss = 0.0
@@ -290,8 +301,7 @@ class Trainer:
         t2 = time.time()
         print("t2: ", t2 - t1)
         t3 = time.time()
-        grads = self.optimizer.clip_grads(grads)
-        self.optim_state = self.optimizer.opt_update(step, grads, self.optim_state)
+        optimize_params_jit(step, grads, self.optim_state)
         print("t3: ", t3 - t2)
         if not silent:
             if self.is_logging_step(step):
