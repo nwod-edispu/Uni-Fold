@@ -284,8 +284,8 @@ class Trainer:
             batch = multi_batch[i]
             batch = cast_to_precision(batch, self.precision)
             loss, grads = self.update(step, batch, rng, loss, grads)
-        grads = self.optimizer.clip_grads(grads)
-        self.optim_state = self.optimizer.opt_update(step, grads, self.optim_state)
+        # grads = self.optimizer.clip_grads(grads)
+        # self.optim_state = self.optimizer.opt_update(step, grads, self.optim_state)
         if not silent:
             if self.is_logging_step(step):
                 self._logging(step, loss)
