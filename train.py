@@ -93,11 +93,10 @@ def train(train_config):
         mpi_comm=mpi_comm)
 
     def get_multi_bacth():
-        update_rng, multi_batch = get_queue_item(train_queue)
-        for _ in range(gc.accumulation_size - 1):
+        multi_batch = []
+        for _ in range(gc.accumulation_size):
             update_rng, batch = get_queue_item(train_queue)
-            for k, v in batch.items():
-                multi_batch[k] = jnp.concatenate((multi_batch[k], v), 0)
+            multi_batch.append(batch)
         return update_rng, multi_batch
 
     logging.info("initializing ...")
