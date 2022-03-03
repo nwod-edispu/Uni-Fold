@@ -33,6 +33,7 @@ from unifold.model.features import FeatureDict
 from ml_collections import ConfigDict
 from typing import Optional
 from jax.tree_util import tree_map
+from jax import lax
 # import major classes & functions
 from unifold.model.modules import AlphaFold
 from unifold.train.data_system import cast_to_precision
@@ -165,33 +166,55 @@ class Trainer:
         def add_pytrees(pytree1, pytree2):
             return tree_map(lambda pt1, pt2: pt1 + pt2, pytree1, pytree2)
 
-        # define update_fn.
-        def _update_fn(step, opt_state, multi_batch, rng):
-            num_batch = self.gc.accumulation_size
-            batch0 = multi_batch[0]
-            loss, grads = jax.value_and_grad(_loss_fn)(
-                self.optimizer.get_params(opt_state), batch0, rng)
-            print(loss)
-            if self.gc.use_mpi:
-                loss = _mpi_reduce_value(loss)
-                grads = _mpi_reduce_tree(grads)
-            loss /= num_batch
-            grads = divide_pytree(grads, num_batch)
+        def zero_pytree(pytree):
+            return pytree(lambda x: jnp.zeros_like(x), pytree)
 
-            for k in range(1, num_batch):
-                batchi = multi_batch[k]
-                new_loss, new_grads = jax.value_and_grad(_loss_fn)(
-                    self.optimizer.get_params(opt_state), batchi, rng)
-                print(new_loss)
-                if self.gc.use_mpi:
-                    new_loss = _mpi_reduce_value(loss)
-                    new_grads = _mpi_reduce_tree(grads)
-                loss += new_loss / num_batch
-                grads = add_pytrees(grads, divide_pytree(new_grads, num_batch))
-
+        def true_fun(args):
+            step, opt_state, loss, grads = args
             grads = self.optimizer.clip_grads(grads)
             opt_state = self.optimizer.opt_update(step, grads, opt_state)
-            return opt_state, loss
+            return opt_state, 0.0, zero_pytree(grads)
+
+        def false_fun(args):
+            return args
+
+        # define update_fn.
+        # def _update_fn(step, opt_state, multi_batch, rng):
+        #     num_batch = self.gc.accumulation_size
+        #     batch0 = multi_batch[0]
+        #     loss, grads = jax.value_and_grad(_loss_fn)(
+        #         self.optimizer.get_params(opt_state), batch0, rng)
+        #     if self.gc.use_mpi:
+        #         loss = _mpi_reduce_value(loss)
+        #         grads = _mpi_reduce_tree(grads)
+        #     loss /= num_batch
+        #     grads = divide_pytree(grads, num_batch)
+        #
+        #     for k in range(1, num_batch):
+        #         batchi = multi_batch[k]
+        #         new_loss, new_grads = jax.value_and_grad(_loss_fn)(
+        #             self.optimizer.get_params(opt_state), batchi, rng)
+        #         if self.gc.use_mpi:
+        #             new_loss = _mpi_reduce_value(loss)
+        #             new_grads = _mpi_reduce_tree(grads)
+        #         loss += new_loss / num_batch
+        #         grads = add_pytrees(grads, divide_pytree(new_grads, num_batch))
+        #
+        #     grads = self.optimizer.clip_grads(grads)
+        #     opt_state = self.optimizer.opt_update(step, grads, opt_state)
+        #     return opt_state, loss
+        def _update_fn(step, batchi, opt_state, batch, rng, acc_loss, acc_grads):
+            num_batch = self.gc.accumulation_size
+            new_loss, new_grads = jax.value_and_grad(_loss_fn)(
+                self.optimizer.get_params(opt_state), batch, rng)
+            if self.gc.use_mpi:
+                new_loss = _mpi_reduce_value(new_loss)
+                new_grads = _mpi_reduce_tree(new_grads)
+            acc_loss += new_loss / num_batch
+            acc_grads = add_pytrees(acc_grads, divide_pytree(new_grads, num_batch))
+            return lax.cond((batchi == num_batch - 1),
+                            (step, opt_state, acc_loss, acc_grads), true_fun,
+                            (opt_state, acc_loss, acc_grads), false_fun)
 
         # define eval_fn for validation.
         def _eval_fn(params, batch, rng):
@@ -240,11 +263,11 @@ class Trainer:
         self.eval_losses = load_loss_curve(eval_curve_path)
         logging.info(f"model autoloaded at step {step:05d} successfully.")
 
-    def update(self, step, multi_batch, rng):
+    def update(self, step, batchi, batch, rng, loss, grads):
         # wrapped update_fn for external calls.
-        opt_state, loss = self._update_fn(step, self.optim_state, multi_batch, rng)
+        opt_state, loss, grads = self._update_fn(step, batchi, self.optim_state, batch, rng, loss, grads)
         self.optim_state = opt_state
-        return loss
+        return loss, grads
 
     def _logging(self, step, loss):
         # print and record training stats at the step.
@@ -256,8 +279,12 @@ class Trainer:
         self._tic = time.time()
 
     def train_step(self, step, multi_batch, rng, silent=True):
-        multi_batch = cast_to_precision(multi_batch, self.precision)
-        loss = self.update(step, multi_batch, rng)
+        params = self.optimizer.get_params(self.optim_state)
+        loss = 0.0
+        for i in range(multi_batch):
+            batch = multi_batch[i]
+            batch = cast_to_precision(batch, self.precision)
+            loss, grads = self.update(step, i, batch, rng, loss, tree_map(lambda x: jnp.zeros_like(x), params))
         if not silent:
             if self.is_logging_step(step):
                 self._logging(step, loss)
