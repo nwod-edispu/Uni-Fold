@@ -96,10 +96,17 @@ def train(train_config):
     _, init_batch = get_queue_item(train_queue)  # do NOT use the returned rng to initialize trainer.
     trainer.initialize(init_batch, load_format=gc.ckpt_format)
 
+    def get_multi_batch():
+        multi_batch = []
+        for i in range(gc.accumulation_size):
+            update_rng, batch = get_queue_item(train_queue)
+            multi_batch.append(batch)
+        return multi_batch
+
     # conduct training
     logging.info("training ...")
     for step in range(gc.start_step, gc.end_step):
-        update_rng, batch = get_queue_item(train_queue)
+        update_rng, batch = get_multi_batch()
         trainer.train_step(step, batch, update_rng, silent=(not is_main_process))
         # if eval_data is not None and trainer.is_eval_step(step):
         #     eval_rng, batch = get_queue_item(eval_queue)

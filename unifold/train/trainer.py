@@ -160,50 +160,49 @@ class Trainer:
                 tree = tree_unflatten(tree_struct, flat_tree)
                 return tree
 
-        # def divide_pytree(pytree, div):
-        #     return tree_map(lambda pt: pt / div, pytree)
-        #
-        # def add_pytrees(pytree1, pytree2):
-        #     return tree_map(lambda pt1, pt2: pt1 + pt2, pytree1, pytree2)
-        #
-        # def zero_pytree(pytree):
-        #     return tree_map(lambda x: jnp.zeros_like(x), pytree)
+        def divide_pytree(pytree, div):
+            return tree_map(lambda pt: pt / div, pytree)
+
+        def add_pytrees(pytree1, pytree2):
+            return tree_map(lambda pt1, pt2: pt1 + pt2, pytree1, pytree2)
+
+        def zero_pytree(pytree):
+            return tree_map(lambda x: jnp.zeros_like(x), pytree)
 
         # define update_fn.
-        # def _update_fn(step, opt_state, multi_batch, rng):
-        #     num_batch = self.gc.accumulation_size
-        #     batch0 = multi_batch[0]
-        #     loss, grads = jax.value_and_grad(_loss_fn)(
-        #         self.optimizer.get_params(opt_state), batch0, rng)
-        #     if self.gc.use_mpi:
-        #         loss = _mpi_reduce_value(loss)
-        #         grads = _mpi_reduce_tree(grads)
-        #     loss /= num_batch
-        #     grads = divide_pytree(grads, num_batch)
-        #
-        #     for k in range(1, num_batch):
-        #         batchi = multi_batch[k]
-        #         new_loss, new_grads = jax.value_and_grad(_loss_fn)(
-        #             self.optimizer.get_params(opt_state), batchi, rng)
-        #         if self.gc.use_mpi:
-        #             new_loss = _mpi_reduce_value(loss)
-        #             new_grads = _mpi_reduce_tree(grads)
-        #         loss += new_loss / num_batch
-        #         grads = add_pytrees(grads, divide_pytree(new_grads, num_batch))
-        #
-        #     grads = self.optimizer.clip_grads(grads)
-        #     opt_state = self.optimizer.opt_update(step, grads, opt_state)
-        #     return opt_state, loss
-        def _update_fn(step, opt_state, batch, rng):
+        def _update_fn(step, opt_state, multi_batch, rng):
+            num_batch = self.gc.accumulation_size
+            batch0 = multi_batch[0]
             loss, grads = jax.value_and_grad(_loss_fn)(
-                self.optimizer.get_params(opt_state), batch, rng)
-
+                self.optimizer.get_params(opt_state), batch0, rng)
             if self.gc.use_mpi:
                 loss = _mpi_reduce_value(loss)
                 grads = _mpi_reduce_tree(grads)
+            loss /= num_batch
+            grads = divide_pytree(grads, num_batch)
+
+            for k in range(1, num_batch):
+                batchi = multi_batch[k]
+                new_loss, new_grads = jax.value_and_grad(_loss_fn)(
+                    self.optimizer.get_params(opt_state), batchi, rng)
+                if self.gc.use_mpi:
+                    new_loss = _mpi_reduce_value(loss)
+                    new_grads = _mpi_reduce_tree(grads)
+                loss += new_loss / num_batch
+                grads = add_pytrees(grads, divide_pytree(new_grads, num_batch))
+
             grads = self.optimizer.clip_grads(grads)
             opt_state = self.optimizer.opt_update(step, grads, opt_state)
             return opt_state, loss
+        # def _update_fn(step, opt_state, batch, rng):
+        #     loss, grads = jax.value_and_grad(_loss_fn)(
+        #         self.optimizer.get_params(opt_state), batch, rng)
+        #     grads = self.optimizer.clip_grads(grads)
+        #     if self.gc.use_mpi:
+        #         loss = _mpi_reduce_value(loss)
+        #         grads = _mpi_reduce_tree(grads)
+        #     opt_state = self.optimizer.opt_update(step, grads, opt_state)
+        #     return opt_state, loss
 
         # define eval_fn for validation.
         def _eval_fn(params, batch, rng):
