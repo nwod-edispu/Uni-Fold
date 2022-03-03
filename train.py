@@ -36,6 +36,7 @@ else:  # assume single gpu is used.
 # external import
 from absl import logging
 from multiprocessing import Queue
+import jax.numpy as jnp
 
 # internal import
 from unifold.model.config import model_config as get_model_config
@@ -97,11 +98,14 @@ def train(train_config):
     # conduct training
     logging.info("training ...")
     for step in range(gc.start_step, gc.end_step):
-        update_rng, batch = get_queue_item(train_queue)
-        trainer.train_step(step, batch, update_rng, silent=(not is_main_process))
-        if eval_data is not None and trainer.is_eval_step(step):
-            eval_rng, batch = get_queue_item(eval_queue)
-            trainer.eval_step(step, batch, eval_rng, silent=(not is_main_process))
+        update_rng, multi_batch = get_queue_item(train_queue)
+        for k in range(gc.accumulation_size - 1):
+            update_rng, batch = get_queue_item(train_queue)
+            multi_batch = jnp.concatenate((multi_batch, batch), 0)
+        trainer.train_step(step, multi_batch, update_rng, silent=(not is_main_process))
+        # if eval_data is not None and trainer.is_eval_step(step):
+        #     eval_rng, batch = get_queue_item(eval_queue)
+        #     trainer.eval_step(step, batch, eval_rng, silent=(not is_main_process))
     logging.info("finished training.")
 
     if train_batch_proc.is_alive():

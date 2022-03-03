@@ -16,9 +16,8 @@
 
 from ml_collections import ConfigDict
 
-
 train_config = ConfigDict({
-    'global_config':{
+    'global_config': {
         # whether you are using MPI communication for multi-gpu training.
         'use_mpi': False,
         # This specifies a model config defined in `unifold/model/config.py`. 
@@ -36,9 +35,9 @@ train_config = ConfigDict({
         # optimizers, yet `npz` saves only model parameters.
         'ckpt_format': 'pkl',
         # Initial step. if > 0, the model will auto-load ckpts from `load_dir`.
-        'start_step': 40000,                # 0 by default
+        'start_step': 0,  # 0 by default
         # Max steps for training. Accumulated from 'start_step' instead of 0.
-        'end_step': 200000,                # 80000 in af2
+        'end_step': 80000,  # 80000 in af2
         # Frequency of logging messages and the training loss curve.
         'logging_freq': 10,
         # Frequency of validation.
@@ -57,25 +56,26 @@ train_config = ConfigDict({
         # batches. Generally has little impact on code efficiency.
         'max_queue_size': 64,
         # Random seed for initializing model parameters. Ignored when attempting to auto load ckpts.
-        'random_seed': 1813229
+        'random_seed': 1813229,
+        'accumulation_size': 4
     },
     'optimizer': {
         # Optimizer class.
-        'name': 'adam',                 # in ['adam', 'sgd', ...]
+        'name': 'adam',  # in ['adam', 'sgd', ...]
         # Learning rate. if warm up steps > 0, this specifies the peak learning rate. 
-        'learning_rate': 1e-3,          # 1e-3 in af2
+        'learning_rate': 1e-3,  # 1e-3 in af2
         # The number of warm-up steps.
-        'warm_up_steps': 10,            # 1000 in af2
+        'warm_up_steps': 10,  # 1000 in af2
         # Learning rate decay configs.
-        'decay':{
-            'name': 'exp',              # only 'exp' supported
-            'decay_rate': 0.95,         # 0.95 in af2
-            'decay_steps': 10           # 5000? in af2
+        'decay': {
+            'name': 'exp',  # only 'exp' supported
+            'decay_rate': 0.95,  # 0.95 in af2
+            'decay_steps': 10  # 5000? in af2
         },
         # Global clip norm of gradients.
         'clip_norm': 1e-1,
     },
-    'data':{
+    'data': {
         'train': {
             # Directory to store features (features.pkl files)
             'features_dir': "/home/hanj/workplace/unifold_dataset/training_set/features/",
