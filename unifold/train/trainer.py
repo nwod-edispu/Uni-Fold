@@ -205,7 +205,7 @@ class Trainer:
             # acc_grads = add_pytrees(acc_grads, divide_pytree(new_grads, num_batch))
             # grads = self.optimizer.clip_grads(new_grads)
             # self.optim_state = self.optimizer.opt_update(step, new_grads, self.optim_state)
-            return opt_state, acc_loss, acc_grads
+            return opt_state, new_loss, new_grads
 
         # define eval_fn for validation.
         def _eval_fn(params, batch, rng):
@@ -270,16 +270,15 @@ class Trainer:
         self._tic = time.time()
 
     def train_step(self, step, batch, rng, silent=True):
-        t = time.time()
-        params = self.optimizer.get_params(self.optim_state)
-        grads = tree_map(lambda x: jnp.zeros_like(x), params)
+        # t = time.time()
+        # params = self.optimizer.get_params(self.optim_state)
+        # grads = tree_map(lambda x: jnp.zeros_like(x), params)
         t1 = time.time()
-        print("t1: ", t1 - t)
         loss = 0.0
         # for i in range(len(multi_batch)):
         # batch = multi_batch[i]
         batch = cast_to_precision(batch, self.precision)
-        loss, grads = self.update(step, batch, rng, loss, grads)
+        loss, grads = self.update(step, batch, rng, loss, None)
         t2 = time.time()
         print("t2: ", t2 - t1)
         if not silent:
