@@ -165,13 +165,19 @@ class Trainer:
         def add_pytrees(pytree1, pytree2):
             return tree_map(lambda pt1, pt2: pt1 + pt2, pytree1, pytree2)
 
+        def get_mini_batch(multi_batch, start, end):
+            return {
+                k: v[start:end, ...] for k, v in multi_batch.items()
+            }
+
         # define update_fn.
         def _update_fn(step, opt_state, multi_batch, rng):
             len_per_batch = self.mc.eval.num_ensemble * (self.mc.num_recycle + 1)
             num_batch = multi_batch.shape[0] // len_per_batch
-            batch0 = multi_batch[0:len_per_batch, ...]
+            batch0 = get_mini_batch(multi_batch, 0, len_per_batch)
             loss, grads = jax.value_and_grad(_loss_fn)(
                 self.optimizer.get_params(opt_state), batch0, rng)
+            print(loss)
             if self.gc.use_mpi:
                 loss = _mpi_reduce_value(loss)
                 grads = _mpi_reduce_tree(grads)
@@ -179,9 +185,10 @@ class Trainer:
             grads = divide_pytree(grads, num_batch)
 
             for k in range(len_per_batch, multi_batch.shape[0], len_per_batch):
-                batchi = multi_batch[k:len_per_batch, ...]
+                batchi = get_mini_batch(multi_batch, k, len_per_batch)
                 new_loss, new_grads = jax.value_and_grad(_loss_fn)(
                     self.optimizer.get_params(opt_state), batchi, rng)
+                print(new_loss)
                 if self.gc.use_mpi:
                     new_loss = _mpi_reduce_value(loss)
                     new_grads = _mpi_reduce_tree(grads)

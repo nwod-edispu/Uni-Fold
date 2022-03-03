@@ -18,7 +18,7 @@
 import os
 
 os.environ['XLA_PYTHON_CLIENT_PREALLOCATE'] = 'false'
-os.environ['CUDA_VISIBLE_DEVICES'] = '3'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 from unifold.train.train_config import train_config
 
 use_mpi = train_config.global_config.use_mpi
@@ -91,17 +91,24 @@ def train(train_config):
         optim_config=train_config.optimizer,
         model_config=model_config,
         mpi_comm=mpi_comm)
+
+    def get_multi_bacth():
+        update_rng, multi_batch = get_queue_item(train_queue)
+        for _ in range(gc.accumulation_size - 1):
+            update_rng, batch = get_queue_item(train_queue)
+            for k, v in batch.items():
+                multi_batch[k] = jnp.concatenate((multi_batch[k], v), 0)
+        return update_rng, multi_batch
+
     logging.info("initializing ...")
-    _, init_batch = get_queue_item(train_queue)  # do NOT use the returned rng to initialize trainer.
+    # _, init_batch = get_queue_item(train_queue)  # do NOT use the returned rng to initialize trainer.
+    _, init_batch = get_multi_bacth()
     trainer.initialize(init_batch, load_format=gc.ckpt_format)
 
     # conduct training
     logging.info("training ...")
     for step in range(gc.start_step, gc.end_step):
-        update_rng, multi_batch = get_queue_item(train_queue)
-        for k in range(gc.accumulation_size - 1):
-            update_rng, batch = get_queue_item(train_queue)
-            multi_batch = jnp.concatenate((multi_batch, batch), 0)
+        update_rng, multi_batch = get_multi_bacth()
         trainer.train_step(step, multi_batch, update_rng, silent=(not is_main_process))
         # if eval_data is not None and trainer.is_eval_step(step):
         #     eval_rng, batch = get_queue_item(eval_queue)
