@@ -194,8 +194,7 @@ class Trainer:
         #     grads = self.optimizer.clip_grads(grads)
         #     opt_state = self.optimizer.opt_update(step, grads, opt_state)
         #     return opt_state, loss
-        def _update_fn(step, opt_state, batch, rng, acc_loss, acc_grads):
-            num_batch = self.gc.accumulation_size
+        def _update_fn(step, opt_state, batch, rng):
             new_loss, new_grads = jax.value_and_grad(_loss_fn)(
                 self.optimizer.get_params(opt_state), batch, rng)
             if self.gc.use_mpi:
@@ -203,8 +202,8 @@ class Trainer:
                 new_grads = _mpi_reduce_tree(new_grads)
             # acc_loss += new_loss / num_batch
             # acc_grads = add_pytrees(acc_grads, divide_pytree(new_grads, num_batch))
-            # grads = self.optimizer.clip_grads(new_grads)
-            # self.optim_state = self.optimizer.opt_update(step, new_grads, self.optim_state)
+            grads = self.optimizer.clip_grads(new_grads)
+            self.optim_state = self.optimizer.opt_update(step, grads, self.optim_state)
             return opt_state, new_loss, new_grads
 
         # define eval_fn for validation.
@@ -254,11 +253,11 @@ class Trainer:
         self.eval_losses = load_loss_curve(eval_curve_path)
         logging.info(f"model autoloaded at step {step:05d} successfully.")
 
-    def update(self, step, batch, rng, loss, grads):
+    def update(self, step, batch, rng):
         # wrapped update_fn for external calls.
-        opt_state, loss, grads = self._update_fn(step, self.optim_state, batch, rng, loss, grads)
+        opt_state, loss = self._update_fn(step, self.optim_state, batch, rng)
         self.optim_state = opt_state
-        return loss, grads
+        return loss
 
     def _logging(self, step, loss):
         # print and record training stats at the step.
@@ -275,7 +274,7 @@ class Trainer:
         # for i in range(len(multi_batch)):
         # batch = multi_batch[i]
         batch = cast_to_precision(batch, self.precision)
-        loss, grads = self.update(step, batch, rng, 0, None)
+        loss = self.update(step, batch, rng)
         if not silent:
             if self.is_logging_step(step):
                 self._logging(step, loss)
