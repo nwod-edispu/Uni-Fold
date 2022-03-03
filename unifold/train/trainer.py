@@ -173,7 +173,7 @@ class Trainer:
             step, opt_state, loss, grads = args
             grads = self.optimizer.clip_grads(grads)
             opt_state = self.optimizer.opt_update(step, grads, opt_state)
-            return opt_state, 0.0, zero_pytree(grads)
+            return opt_state, loss, zero_pytree(grads)
 
         def false_fun(args):
             return args
@@ -203,7 +203,7 @@ class Trainer:
         #     grads = self.optimizer.clip_grads(grads)
         #     opt_state = self.optimizer.opt_update(step, grads, opt_state)
         #     return opt_state, loss
-        def _update_fn(step, batchi, opt_state, batch, rng, acc_loss, acc_grads):
+        def _update_fn(step, opt_state, batch, rng, acc_loss, acc_grads):
             num_batch = self.gc.accumulation_size
             new_loss, new_grads = jax.value_and_grad(_loss_fn)(
                 self.optimizer.get_params(opt_state), batch, rng)
@@ -212,9 +212,7 @@ class Trainer:
                 new_grads = _mpi_reduce_tree(new_grads)
             acc_loss += new_loss / num_batch
             acc_grads = add_pytrees(acc_grads, divide_pytree(new_grads, num_batch))
-            return lax.cond((batchi == num_batch - 1),
-                            (step, opt_state, acc_loss, acc_grads), true_fun,
-                            (opt_state, acc_loss, acc_grads), false_fun)
+            return opt_state, acc_loss, acc_grads
 
         # define eval_fn for validation.
         def _eval_fn(params, batch, rng):
@@ -263,9 +261,9 @@ class Trainer:
         self.eval_losses = load_loss_curve(eval_curve_path)
         logging.info(f"model autoloaded at step {step:05d} successfully.")
 
-    def update(self, step, batchi, batch, rng, loss, grads):
+    def update(self, step, batch, rng, loss, grads):
         # wrapped update_fn for external calls.
-        opt_state, loss, grads = self._update_fn(step, batchi, self.optim_state, batch, rng, loss, grads)
+        opt_state, loss, grads = self._update_fn(step, self.optim_state, batch, rng, loss, grads)
         self.optim_state = opt_state
         return loss, grads
 
@@ -280,11 +278,14 @@ class Trainer:
 
     def train_step(self, step, multi_batch, rng, silent=True):
         params = self.optimizer.get_params(self.optim_state)
+        grads = tree_map(lambda x: jnp.zeros_like(x), params)
         loss = 0.0
         for i in range(len(multi_batch)):
             batch = multi_batch[i]
             batch = cast_to_precision(batch, self.precision)
-            loss, grads = self.update(step, i, batch, rng, loss, tree_map(lambda x: jnp.zeros_like(x), params))
+            loss, grads = self.update(step, batch, rng, loss, grads)
+        grads = self.optimizer.clip_grads(grads)
+        self.optim_state = self.optimizer.opt_update(step, grads, self.optim_state)
         if not silent:
             if self.is_logging_step(step):
                 self._logging(step, loss)
