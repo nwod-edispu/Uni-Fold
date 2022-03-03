@@ -278,14 +278,21 @@ class Trainer:
 
     def train_step(self, step, multi_batch, rng, silent=True):
         params = self.optimizer.get_params(self.optim_state)
+        t = time.time()
         grads = tree_map(lambda x: jnp.zeros_like(x), params)
+        t1 = time.time()
+        print("t1: ", t1 - t)
         loss = 0.0
         for i in range(len(multi_batch)):
             batch = multi_batch[i]
             batch = cast_to_precision(batch, self.precision)
             loss, grads = self.update(step, batch, rng, loss, grads)
-        # grads = self.optimizer.clip_grads(grads)
-        # self.optim_state = self.optimizer.opt_update(step, grads, self.optim_state)
+        t2 = time.time()
+        print("t2: ", t2 - t1)
+        t3 = time.time()
+        grads = self.optimizer.clip_grads(grads)
+        self.optim_state = self.optimizer.opt_update(step, grads, self.optim_state)
+        print("t3: ", t3 - t2)
         if not silent:
             if self.is_logging_step(step):
                 self._logging(step, loss)
