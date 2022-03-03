@@ -100,8 +100,8 @@ def train(train_config):
         return update_rng, multi_batch
 
     logging.info("initializing ...")
-    # _, init_batch = get_queue_item(train_queue)  # do NOT use the returned rng to initialize trainer.
-    _, init_batch = get_multi_bacth()
+    _, init_batch = get_queue_item(train_queue)  # do NOT use the returned rng to initialize trainer.
+    # _, init_batch = get_multi_bacth()
     trainer.initialize(init_batch, load_format=gc.ckpt_format)
 
     # conduct training
