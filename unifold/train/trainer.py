@@ -181,8 +181,9 @@ class Trainer:
             loss /= num_batch
             grads = divide_pytree(grads, num_batch)
 
-            for k in range(1, num_batch):
-                batchi = multi_batch[k]
+            def body(x):
+                idx, multi_batch, loss, grads = x
+                batchi = multi_batch[idx]
                 new_loss, new_grads = jax.value_and_grad(_loss_fn)(
                     self.optimizer.get_params(opt_state), batchi, rng)
                 if self.gc.use_mpi:
@@ -190,10 +191,13 @@ class Trainer:
                     new_grads = _mpi_reduce_tree(grads)
                 loss += new_loss / num_batch
                 grads = add_pytrees(grads, divide_pytree(new_grads, num_batch))
+                return idx + 1, multi_batch, loss, grads
 
+            _, _, loss, grads = lax.while_loop(lambda x: x[0] < num_batch, body, (1, multi_batch, loss, grads))
             grads = self.optimizer.clip_grads(grads)
             opt_state = self.optimizer.opt_update(step, grads, opt_state)
             return opt_state, loss
+
         # def _update_fn(step, opt_state, batch, rng):
         #     loss, grads = jax.value_and_grad(_loss_fn)(
         #         self.optimizer.get_params(opt_state), batch, rng)

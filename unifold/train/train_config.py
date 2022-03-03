@@ -39,7 +39,7 @@ train_config = ConfigDict({
         # Max steps for training. Accumulated from 'start_step' instead of 0.
         'end_step': 80000,  # 80000 in af2
         # Frequency of logging messages and the training loss curve.
-        'logging_freq': 10,
+        'logging_freq': 1,
         # Frequency of validation.
         'eval_freq': 50,
         # Frequency of saving ckpts.
