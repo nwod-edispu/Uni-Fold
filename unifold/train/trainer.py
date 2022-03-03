@@ -167,7 +167,7 @@ class Trainer:
             return tree_map(lambda pt1, pt2: pt1 + pt2, pytree1, pytree2)
 
         def zero_pytree(pytree):
-            return pytree(lambda x: jnp.zeros_like(x), pytree)
+            return tree_map(lambda x: jnp.zeros_like(x), pytree)
 
         def true_fun(args):
             step, opt_state, loss, grads = args
