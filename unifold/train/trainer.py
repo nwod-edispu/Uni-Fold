@@ -197,10 +197,11 @@ class Trainer:
         def _update_fn(step, opt_state, batch, rng):
             loss, grads = jax.value_and_grad(_loss_fn)(
                 self.optimizer.get_params(opt_state), batch, rng)
-            grads = self.optimizer.clip_grads(grads)
+
             if self.gc.use_mpi:
                 loss = _mpi_reduce_value(loss)
                 grads = _mpi_reduce_tree(grads)
+            grads = self.optimizer.clip_grads(grads)
             opt_state = self.optimizer.opt_update(step, grads, opt_state)
             return opt_state, loss
 
