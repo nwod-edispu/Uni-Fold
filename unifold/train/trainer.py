@@ -204,7 +204,7 @@ class Trainer:
             # acc_grads = add_pytrees(acc_grads, divide_pytree(new_grads, num_batch))
             grads = self.optimizer.clip_grads(new_grads)
             self.optim_state = self.optimizer.opt_update(step, grads, self.optim_state)
-            return opt_state, new_loss, new_grads
+            return opt_state, new_loss
 
         # define eval_fn for validation.
         def _eval_fn(params, batch, rng):
