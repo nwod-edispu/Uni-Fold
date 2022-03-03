@@ -210,8 +210,8 @@ class Trainer:
             if self.gc.use_mpi:
                 new_loss = _mpi_reduce_value(new_loss)
                 new_grads = _mpi_reduce_tree(new_grads)
-            acc_loss += new_loss / num_batch
-            acc_grads = add_pytrees(acc_grads, divide_pytree(new_grads, num_batch))
+            # acc_loss += new_loss / num_batch
+            # acc_grads = add_pytrees(acc_grads, divide_pytree(new_grads, num_batch))
             return opt_state, acc_loss, acc_grads
 
         # define eval_fn for validation.
@@ -277,20 +277,9 @@ class Trainer:
         self._tic = time.time()
 
     def train_step(self, step, multi_batch, rng, silent=True):
-        def get_zero_grads():
-            params = self.optimizer.get_params(self.optim_state)
-            grads = tree_map(lambda x: jnp.zeros_like(x), params)
-            return grads
-
-        def optimize_params(step, grads, optim_state):
-            grads = self.optimizer.clip_grads(grads)
-            self.optim_state = self.optimizer.opt_update(step, grads, optim_state)
-
-        get_zero_grads_jit = jax.jit(get_zero_grads)
-        optimize_params_jit = jax.jit(optimize_params)
-
         t = time.time()
-        grads = get_zero_grads_jit()
+        params = self.optimizer.get_params(self.optim_state)
+        grads = tree_map(lambda x: jnp.zeros_like(x), params)
         t1 = time.time()
         print("t1: ", t1 - t)
         loss = 0.0
@@ -300,8 +289,10 @@ class Trainer:
             loss, grads = self.update(step, batch, rng, loss, grads)
         t2 = time.time()
         print("t2: ", t2 - t1)
+        grads = self.optimizer.clip_grads(grads)
+        self.optim_state = self.optimizer.opt_update(step, grads, self.optim_state)
         t3 = time.time()
-        optimize_params_jit(step, grads, self.optim_state)
+
         print("t3: ", t3 - t2)
         if not silent:
             if self.is_logging_step(step):
