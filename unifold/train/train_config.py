@@ -25,7 +25,7 @@ train_config = ConfigDict({
         # Setting this config to 'unifold' to reproduce Uni-Fold, or 'demo' 
         # for fast demonstration. You can also customize your own model config 
         # in `unifold/model/config.py` and specify it here.
-        'model_name': 'demo',
+        'model_name': 'unifold',
         # Verbosity of logging messages.
         'verbose': 'info',
         # The number of processes/gpus per node
@@ -35,20 +35,20 @@ train_config = ConfigDict({
         # optimizers, yet `npz` saves only model parameters.
         'ckpt_format': 'pkl',
         # Initial step. if > 0, the model will auto-load ckpts from `load_dir`.
-        'start_step': 2000,  # 0 by default
+        'start_step': 0,  # 0 by default
         # Max steps for training. Accumulated from 'start_step' instead of 0.
         'end_step': 80000,  # 80000 in af2
         # Frequency of logging messages and the training loss curve.
-        'logging_freq': 1,
+        'logging_freq': 10,
         # Frequency of validation.
         'eval_freq': 50,
         # Frequency of saving ckpts.
         'save_freq': 50,
         # Directory to save ckpts. used for auto-saving ckpts.
-        'save_dir': '../out/small',
+        'save_dir': '../out/test',
         # Directory to load ckpts. used for auto-loading ckpts.
         # ignored if start_step == 0.
-        'load_dir': '../out/small',
+        'load_dir': '../out/test',
         # Training precision, generally in ['fp32', 'bf16'].
         # Set for mixed precision training.
         'precision': 'fp32',
@@ -57,7 +57,7 @@ train_config = ConfigDict({
         'max_queue_size': 128,
         # Random seed for initializing model parameters. Ignored when attempting to auto load ckpts.
         'random_seed': 1813229,
-        'accumulation_size': 32
+        'accumulation_size': 1
     },
     'optimizer': {
         # Optimizer class.
