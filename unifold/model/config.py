@@ -52,7 +52,8 @@ CONFIG_DIFFS = {
         'model.embeddings_and_evoformer.template.embed_torsion_angles': True,
         'model.embeddings_and_evoformer.template.enabled': True,
         'model.heads.experimentally_resolved.weight': 0.0,
-        'model.heads.structure_module.structural_violation_loss_weight': 0.0
+        'model.heads.structure_module.structural_violation_loss_weight': 0.0,
+        'model.embeddings_and_evoformer.evoformer_num_block': 24,
     },
     # A demo configuration for debugging:
     'demo': {

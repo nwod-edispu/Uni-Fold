@@ -106,7 +106,10 @@ def train(train_config):
     # conduct training
     logging.info("training ...")
     for step in range(gc.start_step, gc.end_step):
-        update_rng, batch = get_multi_batch()
+        if gc.accumulation_size == 1:
+            update_rng, batch = get_queue_item(train_queue)
+        else:
+            update_rng, batch = get_multi_batch()
         trainer.train_step(step, batch, update_rng, silent=(not is_main_process))
         # if eval_data is not None and trainer.is_eval_step(step):
         #     eval_rng, batch = get_queue_item(eval_queue)

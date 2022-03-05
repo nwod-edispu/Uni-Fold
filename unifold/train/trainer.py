@@ -71,6 +71,7 @@ class Trainer:
         self._apply_fn = jax.jit(hk.transform(_forward_fn).apply)
         self._loss_fn = None  # has to be initialized by external call on `Trainer.initialize()`
         self._update_fn = None  # has to be initialized by external call on `Trainer.initialize()`
+        self._update_fn_multi_batch = None
 
         # optimizer variables, have to be initialized by external call on `Trainer.initialize()`
         self.optim_config = optim_config
@@ -167,7 +168,7 @@ class Trainer:
             return tree_map(lambda pt1, pt2: pt1 + pt2, pytree1, pytree2)
 
         # define update_fn.
-        def _update_fn(step, opt_state, multi_batch, rng):
+        def _update_fn_multi_batch(step, opt_state, multi_batch, rng):
             num_batch = self.gc.accumulation_size
             batch0 = multi_batch[0]
             loss, grads = jax.value_and_grad(_loss_fn)(
@@ -192,6 +193,16 @@ class Trainer:
             opt_state = self.optimizer.opt_update(step, grads, opt_state)
             return opt_state, loss
 
+        def _update_fn(step, opt_state, batch, rng):
+            loss, grads = jax.value_and_grad(_loss_fn)(
+                self.optimizer.get_params(opt_state), batch, rng)
+            grads = self.optimizer.clip_grads(grads)
+            if self.gc.use_mpi:
+                loss = _mpi_reduce_value(loss)
+                grads = _mpi_reduce_tree(grads)
+            opt_state = self.optimizer.opt_update(step, grads, opt_state)
+            return opt_state, loss
+
         # define eval_fn for validation.
         def _eval_fn(params, batch, rng):
             loss = _loss_fn(params, batch, rng)
@@ -202,6 +213,7 @@ class Trainer:
         self._loss_fn = _loss_fn  # this is not re-jit as loss_fn is much of a wrapped apply_fn.
         self._eval_fn = _eval_fn
         self._update_fn = jax.jit(_update_fn)  # jit transformation of update_fn.
+        self._update_fn_multi_batch = jax.jit(_update_fn_multi_batch)
 
         # start ticking after initialization.
         self._tic = time.time()
@@ -241,7 +253,10 @@ class Trainer:
 
     def update(self, step, batch, rng):
         # wrapped update_fn for external calls.
-        opt_state, loss = self._update_fn(step, self.optim_state, batch, rng)
+        if self.gc.accumulation_size == 1:
+            opt_state, loss = self._update_fn(step, self.optim_state, batch, rng)
+        else:
+            opt_state, loss = self._update_fn_multi_batch(step, self.optim_state, batch, rng)
         self.optim_state = opt_state
         return loss
 
@@ -255,10 +270,6 @@ class Trainer:
         self._tic = time.time()
 
     def train_step(self, step, batch, rng, silent=True):
-        # params = self.optimizer.get_params(self.optim_state)
-        # grads = tree_map(lambda x: jnp.zeros_like(x), params)
-        # for i in range(len(multi_batch)):
-        # batch = multi_batch[i]
         batch = cast_to_precision(batch, self.precision)
         loss = self.update(step, batch, rng)
         if not silent:
