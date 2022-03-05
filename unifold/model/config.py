@@ -63,6 +63,7 @@ CONFIG_DIFFS = {
         'model.heads.structure_module.num_head': 6,
         'model.heads.predicted_lddt.num_channels': 64,
         'data.common.max_extra_msa': 256,
+        'data.eval.crop_size': 128
     },
     # A demo configuration for debugging:
     'demo': {
