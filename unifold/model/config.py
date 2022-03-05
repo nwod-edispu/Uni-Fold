@@ -53,7 +53,8 @@ CONFIG_DIFFS = {
         'model.embeddings_and_evoformer.template.enabled': True,
         'model.heads.experimentally_resolved.weight': 0.0,
         'model.heads.structure_module.structural_violation_loss_weight': 0.0,
-        'model.num_recycle': 1
+        'data.common.num_recycle': 2,
+        'model.num_recycle': 2
     },
     # A demo configuration for debugging:
     'demo': {
