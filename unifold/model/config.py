@@ -46,7 +46,7 @@ CONFIG_DIFFS = {
     # and referring to them via the key name.
     # The configuration we used to train Uni-Fold:
     'unifold': {
-        'data.common.reduce_msa_clusters_by_max_templates': True,
+        #'data.common.reduce_msa_clusters_by_max_templates': True,
         'data.common.use_templates': True,
         'data.eval.max_msa_clusters': 128,
         'model.embeddings_and_evoformer.template.embed_torsion_angles': True,
