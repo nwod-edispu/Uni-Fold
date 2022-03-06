@@ -56,7 +56,8 @@ CONFIG_DIFFS = {
         'data.common.max_extra_msa': 256,
         'data.eval.crop_size': 128,
         'model.embeddings_and_evoformer.evoformer_num_block': 24,
-        'model.heads.structure_module.num_layer': 4
+        'model.heads.structure_module.num_layer': 4,
+        'data.common.num_recycle': 2
     },
     # A demo configuration for debugging:
     'demo': {
