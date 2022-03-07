@@ -46,11 +46,7 @@ CONFIG_DIFFS = {
     # and referring to them via the key name.
     # The configuration we used to train Uni-Fold:
     'unifold': {
-        # 'data.common.reduce_msa_clusters_by_max_templates': True,
-        # 'data.common.use_templates': True,
         'data.eval.max_msa_clusters': 128,
-        # 'model.embeddings_and_evoformer.template.embed_torsion_angles': True,
-        # 'model.embeddings_and_evoformer.template.enabled': True,
         'model.heads.experimentally_resolved.weight': 0.0,
         'model.heads.structure_module.structural_violation_loss_weight': 0.0,
         'data.common.max_extra_msa': 256,
@@ -59,16 +55,6 @@ CONFIG_DIFFS = {
         'model.heads.structure_module.num_layer': 4,
         'data.common.num_recycle': 2,
         'model.num_recycle': 2
-
-        # 'data.eval.max_msa_cluster': 128,
-        # 'model.heads.experimentally_resolved.weight': 0.0,
-        # 'model.heads.structure_module.structural_violation_loss_weight': 0.0,
-        # 'data.common.max_extra_msa': 256,
-        # 'data.eval.crop_size': 128,
-        # 'model.embeddings_and_evoformer.evoformer_num_block': 24,
-        # 'model.heads.structure_module.num_layer': 4,
-        # 'data.common.num_recycle': 2,
-        # 'model.num_recycle': 2
     },
     # A demo configuration for debugging:
     'demo': {
