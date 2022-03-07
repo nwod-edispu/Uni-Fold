@@ -59,10 +59,10 @@ CONFIG_DIFFS = {
         # 'model.heads.structure_module.num_layer': 4,
         # 'data.common.num_recycle': 2,
         # 'model.num_recycle': 2
-        'data.common.max_extra_msa': 128,
+        'data.common.max_extra_msa': 256,
         'data.common.num_recycle': 2,
         'data.eval.crop_size': 128,
-        'data.eval.max_msa_cluster': 16,
+        'data.eval.max_msa_cluster': 128,
         'model.embeddings_and_evoformer.evoformer_num_block': 24,
         'model.embeddings_and_evoformer.extra_msa_channel': 16,
         'model.embeddings_and_evoformer.msa_channel': 128,
