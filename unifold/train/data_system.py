@@ -191,7 +191,7 @@ class DataSystem:
         """
         Add by hj, for computing the features ahead to accelerate the data loader
         """
-        for index in range(2100, self.num_prot):
+        for index in range(0, self.num_prot):
             if index % 100 == 0:
                 print(index)
             try:
