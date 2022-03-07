@@ -60,7 +60,7 @@ CONFIG_DIFFS = {
         'model.embeddings_and_evoformer.msa_channel': 128,
         'model.embeddings_and_evoformer.pair_channel': 64,
         'model.embeddings_and_evoformer.seq_channel': 192,
-        'model.heads.structure_module.num_layer': 4,
+        'model.heads.structure_module.num_layer': 8,
         'model.heads.structure_module.num_channel': 192,
         'model.heads.structure_module.num_head': 6,
         'model.heads.predicted_lddt.num_channels': 64,
