@@ -48,7 +48,7 @@ CONFIG_DIFFS = {
     'unifold': {
         'data.common.reduce_msa_clusters_by_max_templates': True,
         'data.common.use_templates': True,
-        'data.eval.max_msa_clusters': 64,
+        'data.eval.max_msa_clusters': 128,
         'model.embeddings_and_evoformer.template.embed_torsion_angles': True,
         'model.embeddings_and_evoformer.template.enabled': True,
         'model.heads.experimentally_resolved.weight': 0.0,
@@ -64,8 +64,8 @@ CONFIG_DIFFS = {
         'model.heads.structure_module.num_channel': 192,
         'model.heads.structure_module.num_head': 6,
         'model.heads.predicted_lddt.num_channels': 64,
-        'data.common.num_recycle': 2,
-        'model.num_recycle': 2
+        'data.common.num_recycle': 1,
+        'model.num_recycle': 1
     },
     # A demo configuration for debugging:
     'demo': {
