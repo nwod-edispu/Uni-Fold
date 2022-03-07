@@ -46,7 +46,7 @@ CONFIG_DIFFS = {
     # and referring to them via the key name.
     # The configuration we used to train Uni-Fold:
     'unifold': {
-        'data.eval.max_msa_clusters': 128,
+        'data.eval.max_msa_cluster': 128,
         'model.heads.experimentally_resolved.weight': 0.0,
         'model.heads.structure_module.structural_violation_loss_weight': 0.0,
         'data.common.max_extra_msa': 256,
