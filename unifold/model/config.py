@@ -48,7 +48,7 @@ CONFIG_DIFFS = {
     'unifold': {
         'data.common.reduce_msa_clusters_by_max_templates': True,
         'data.common.use_templates': True,
-        'data.eval.max_msa_clusters': 128,
+        # 'data.eval.max_msa_clusters': 128,
         'model.embeddings_and_evoformer.template.embed_torsion_angles': True,
         'model.embeddings_and_evoformer.template.enabled': True,
         'model.heads.experimentally_resolved.weight': 0.0,
