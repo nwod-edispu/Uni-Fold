@@ -39,16 +39,16 @@ train_config = ConfigDict({
         # Max steps for training. Accumulated from 'start_step' instead of 0.
         'end_step': 80000,  # 80000 in af2
         # Frequency of logging messages and the training loss curve.
-        'logging_freq': 10,
+        'logging_freq': 1,
         # Frequency of validation.
         'eval_freq': 50,
         # Frequency of saving ckpts.
         'save_freq': 50,
         # Directory to save ckpts. used for auto-saving ckpts.
-        'save_dir': '../out/test',
+        'save_dir': '../out/unifold',
         # Directory to load ckpts. used for auto-loading ckpts.
         # ignored if start_step == 0.
-        'load_dir': '../out/test',
+        'load_dir': '../out/unifold',
         # Training precision, generally in ['fp32', 'bf16'].
         # Set for mixed precision training.
         'precision': 'fp16',
@@ -57,7 +57,7 @@ train_config = ConfigDict({
         'max_queue_size': 128,
         # Random seed for initializing model parameters. Ignored when attempting to auto load ckpts.
         'random_seed': 1813229,
-        'accumulation_size': 1
+        'accumulation_size': 32
     },
     'optimizer': {
         # Optimizer class.
