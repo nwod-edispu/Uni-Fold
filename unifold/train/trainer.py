@@ -270,7 +270,7 @@ class Trainer:
         self._tic = time.time()
 
     def train_step(self, step, batch, rng, silent=True):
-        batch = cast_to_precision(batch, self.precision)
+        batch = cast_to_precision(batch, self.precision, self.gc.accumulation_size != 1)
         loss = self.update(step, batch, rng)
         if not silent:
             if self.is_logging_step(step):

@@ -40,7 +40,7 @@ FEATNAME_DICT = set(['aatype', 'residue_index', 'seq_length', 'template_aatype',
                      'msa_feat', 'target_feat'])
 
 
-def cast_to_precision(batch, precision):
+def cast_to_precision(batch, precision, is_multi_batch=False):
     # the input batch is asserted of precision fp32.
     if precision == 'bf16':
         dtype = jnp.bfloat16
@@ -48,13 +48,24 @@ def cast_to_precision(batch, precision):
         dtype = jnp.float16
     else:  # assert fp32 specified
         return batch
-    for key in batch:
-        # skip int type
-        if batch[key].dtype in [np.int32, np.int64, jnp.int32, jnp.int64]:
-            continue
-        if 'feat' in key or 'mask' in key or key in FEATNAME_DICT:
-            batch[key] = jnp.asarray(batch[key], dtype=dtype)
+    if is_multi_batch:
+        for b in batch:
+            for key in b:
+                # skip int type
+                if b[key].dtype in [np.int32, np.int64, jnp.int32, jnp.int64]:
+                    continue
+                if 'feat' in key or 'mask' in key or key in FEATNAME_DICT:
+                    b[key] = jnp.asarray(b[key], dtype=dtype)
+    else:
+        for key in batch:
+            # skip int type
+            if batch[key].dtype in [np.int32, np.int64, jnp.int32, jnp.int64]:
+                continue
+            if 'feat' in key or 'mask' in key or key in FEATNAME_DICT:
+                batch[key] = jnp.asarray(batch[key], dtype=dtype)
     return batch
+
+
 
 
 class DataSystem:
