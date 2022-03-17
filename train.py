@@ -68,7 +68,7 @@ def train(train_config):
     train_batch_proc = GetBatchProcess(
         queue=train_queue,
         data=train_data,
-        num_batches=gc.end_step - gc.start_step + 1,  # add 1 for the initialization batch
+        num_batches=(gc.end_step - gc.start_step + 1) * gc.accumulation_size,  # add 1 for the initialization batch
         is_training=True,
         random_seed=gc.random_seed,
         mpi_rank=mpi_rank)  # pass rank to generate different batches among mpi.
