@@ -161,7 +161,7 @@ class DataSystem:
             prot_idx,
             rng):
         prot_name = self.prot_keys[prot_idx % self.num_prot]
-        logging.info(f"loading protein #{prot_idx:06d}: {prot_name}...")
+        logging.debug(f"loading protein #{prot_idx:06d}: {prot_name}...")
         # raw_features, raw_labels = self.load(prot_name)
         # resolution = raw_labels.pop('resolution')
         # rng, batch = self.preprocess(rng, raw_features, raw_labels)
