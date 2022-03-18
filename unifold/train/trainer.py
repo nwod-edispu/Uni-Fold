@@ -170,17 +170,19 @@ class Trainer:
         # define update_fn.
         def _update_fn_multi_batch(step, opt_state, multi_batch, rng):
             num_batch = self.gc.accumulation_size
-            batch0 = multi_batch[0]
-            loss, grads = jax.value_and_grad(_loss_fn)(
-                self.optimizer.get_params(opt_state), batch0, rng)
-            if self.gc.use_mpi:
-                loss = _mpi_reduce_value(loss)
-                grads = _mpi_reduce_tree(grads)
-            loss /= num_batch
-            grads = divide_pytree(grads, num_batch)
 
-            for i in range(1, num_batch):
-                batchi = multi_batch[i]
+            def part1():
+                batch0 = multi_batch[0]
+                loss, grads = jax.value_and_grad(_loss_fn)(
+                    self.optimizer.get_params(opt_state), batch0, rng)
+                if self.gc.use_mpi:
+                    loss = _mpi_reduce_value(loss)
+                    grads = _mpi_reduce_tree(grads)
+                loss /= num_batch
+                grads = divide_pytree(grads, num_batch)
+                return loss, grads
+
+            def part2(loss, grads, batchi):
                 new_loss, new_grads = jax.value_and_grad(_loss_fn)(
                     self.optimizer.get_params(opt_state), batchi, rng)
                 if self.gc.use_mpi:
@@ -188,6 +190,16 @@ class Trainer:
                     new_grads = _mpi_reduce_tree(grads)
                 loss += new_loss / num_batch
                 grads = add_pytrees(grads, divide_pytree(new_grads, num_batch))
+                return loss, grads
+
+            part1_fn = jax.jit(part1)
+            part2_fn = jax.jit(part2)
+
+            loss, grads = part1_fn()
+
+            for i in range(1, num_batch):
+                batchi = multi_batch[i]
+                loss, grads = part2_fn(loss, grads, batchi)
 
             grads = self.optimizer.clip_grads(grads)
             opt_state = self.optimizer.opt_update(step, grads, opt_state)
@@ -213,7 +225,7 @@ class Trainer:
         self._loss_fn = _loss_fn  # this is not re-jit as loss_fn is much of a wrapped apply_fn.
         self._eval_fn = _eval_fn
         self._update_fn = jax.jit(_update_fn)  # jit transformation of update_fn.
-        self._update_fn_multi_batch = jax.jit(_update_fn_multi_batch)
+        # self._update_fn_multi_batch = jax.jit(_update_fn_multi_batch)
 
         # start ticking after initialization.
         self._tic = time.time()
