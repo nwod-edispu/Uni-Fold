@@ -225,7 +225,7 @@ class Trainer:
         self._loss_fn = _loss_fn  # this is not re-jit as loss_fn is much of a wrapped apply_fn.
         self._eval_fn = _eval_fn
         self._update_fn = jax.jit(_update_fn)  # jit transformation of update_fn.
-        # self._update_fn_multi_batch = jax.jit(_update_fn_multi_batch)
+        self._update_fn_multi_batch = _update_fn_multi_batch
 
         # start ticking after initialization.
         self._tic = time.time()
