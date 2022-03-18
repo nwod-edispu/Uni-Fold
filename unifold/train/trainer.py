@@ -190,6 +190,12 @@ class Trainer:
             grads = add_pytrees(grads, divide_pytree(new_grads, num_batch))
             return loss, grads
 
+        @jit
+        def part3(step, grads, opt_state):
+            grads = self.optimizer.clip_grads(grads)
+            opt_state = self.optimizer.opt_update(step, grads, opt_state)
+            return opt_state
+
         # define update_fn.
         def _update_fn_multi_batch(step, opt_state, multi_batch, rng):
             num_batch = self.gc.accumulation_size
@@ -200,8 +206,7 @@ class Trainer:
                 batchi = multi_batch[i]
                 loss, grads = part2(loss, grads, batchi, opt_state, num_batch)
 
-            grads = self.optimizer.clip_grads(grads)
-            opt_state = self.optimizer.opt_update(step, grads, opt_state)
+            opt_state = part3(step, grads, opt_state)
             return opt_state, loss
 
         def _update_fn(step, opt_state, batch, rng):
