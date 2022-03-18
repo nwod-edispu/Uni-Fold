@@ -33,6 +33,7 @@ from unifold.model.features import FeatureDict
 from ml_collections import ConfigDict
 from typing import Optional
 from jax.tree_util import tree_map
+from jax import jit
 from jax import lax
 # import major classes & functions
 from unifold.model.modules import AlphaFold
@@ -167,39 +168,37 @@ class Trainer:
         def add_pytrees(pytree1, pytree2):
             return tree_map(lambda pt1, pt2: pt1 + pt2, pytree1, pytree2)
 
+        @jit
+        def part1(batch0, opt_state, num_batch):
+            loss, grads = jax.value_and_grad(_loss_fn)(
+                self.optimizer.get_params(opt_state), batch0, rng)
+            if self.gc.use_mpi:
+                loss = _mpi_reduce_value(loss)
+                grads = _mpi_reduce_tree(grads)
+            loss /= num_batch
+            grads = divide_pytree(grads, num_batch)
+            return loss, grads
+
+        @jit
+        def part2(loss, grads, batchi, opt_state, num_batch):
+            new_loss, new_grads = jax.value_and_grad(_loss_fn)(
+                self.optimizer.get_params(opt_state), batchi, rng)
+            if self.gc.use_mpi:
+                new_loss = _mpi_reduce_value(loss)
+                new_grads = _mpi_reduce_tree(grads)
+            loss += new_loss / num_batch
+            grads = add_pytrees(grads, divide_pytree(new_grads, num_batch))
+            return loss, grads
+
         # define update_fn.
         def _update_fn_multi_batch(step, opt_state, multi_batch, rng):
             num_batch = self.gc.accumulation_size
-
-            def part1():
-                batch0 = multi_batch[0]
-                loss, grads = jax.value_and_grad(_loss_fn)(
-                    self.optimizer.get_params(opt_state), batch0, rng)
-                if self.gc.use_mpi:
-                    loss = _mpi_reduce_value(loss)
-                    grads = _mpi_reduce_tree(grads)
-                loss /= num_batch
-                grads = divide_pytree(grads, num_batch)
-                return loss, grads
-
-            def part2(loss, grads, batchi):
-                new_loss, new_grads = jax.value_and_grad(_loss_fn)(
-                    self.optimizer.get_params(opt_state), batchi, rng)
-                if self.gc.use_mpi:
-                    new_loss = _mpi_reduce_value(loss)
-                    new_grads = _mpi_reduce_tree(grads)
-                loss += new_loss / num_batch
-                grads = add_pytrees(grads, divide_pytree(new_grads, num_batch))
-                return loss, grads
-
-            part1_fn = jax.jit(part1)
-            part2_fn = jax.jit(part2)
-
-            loss, grads = part1_fn()
+            batch0 = multi_batch[0]
+            loss, grads = part1(batch0, opt_state, num_batch)
 
             for i in range(1, num_batch):
                 batchi = multi_batch[i]
-                loss, grads = part2_fn(loss, grads, batchi)
+                loss, grads = part2(loss, grads, batchi, opt_state, num_batch)
 
             grads = self.optimizer.clip_grads(grads)
             opt_state = self.optimizer.opt_update(step, grads, opt_state)
