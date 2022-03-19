@@ -70,7 +70,7 @@ train_config = ConfigDict({
         'decay': {
             'name': 'exp',  # only 'exp' supported
             'decay_rate': 0.95,  # 0.95 in af2
-            'decay_steps': 50  # 5000? in af2
+            'decay_steps': 10  # 5000? in af2
         },
         # Global clip norm of gradients.
         'clip_norm': 1e-1,
