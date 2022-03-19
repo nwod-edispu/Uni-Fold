@@ -169,7 +169,7 @@ class Trainer:
             return tree_map(lambda pt1, pt2: pt1 + pt2, pytree1, pytree2)
 
         @jit
-        def part1(batch0, opt_state, num_batch):
+        def part1(batch0, opt_state, num_batch, rng):
             loss, grads = jax.value_and_grad(_loss_fn)(
                 self.optimizer.get_params(opt_state), batch0, rng)
             if self.gc.use_mpi:
@@ -180,7 +180,7 @@ class Trainer:
             return loss, grads
 
         @jit
-        def part2(loss, grads, batchi, opt_state, num_batch):
+        def part2(loss, grads, batchi, opt_state, num_batch, rng):
             new_loss, new_grads = jax.value_and_grad(_loss_fn)(
                 self.optimizer.get_params(opt_state), batchi, rng)
             if self.gc.use_mpi:
@@ -200,11 +200,11 @@ class Trainer:
         def _update_fn_multi_batch(step, opt_state, multi_batch, rng):
             num_batch = self.gc.accumulation_size
             batch0 = multi_batch[0]
-            loss, grads = part1(batch0, opt_state, num_batch)
+            loss, grads = part1(batch0, opt_state, num_batch, rng)
 
             for i in range(1, num_batch):
                 batchi = multi_batch[i]
-                loss, grads = part2(loss, grads, batchi, opt_state, num_batch)
+                loss, grads = part2(loss, grads, batchi, opt_state, num_batch, rng)
 
             opt_state = part3(step, grads, opt_state)
             return opt_state, loss
