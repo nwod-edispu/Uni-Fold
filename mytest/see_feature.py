@@ -19,7 +19,7 @@ def gen():
 
 
 def main():
-    data = np.load("G://6years//out//unifold_train_curve.npy")
+    data = np.load("G://23333//out//unifold_train_curve.npy")
     plt.plot(data[:, 0], data[:, 1])
     plt.show()
 
