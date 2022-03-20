@@ -35,7 +35,7 @@ train_config = ConfigDict({
         # optimizers, yet `npz` saves only model parameters.
         'ckpt_format': 'pkl',
         # Initial step. if > 0, the model will auto-load ckpts from `load_dir`.
-        'start_step': 1500,  # 0 by default
+        'start_step': 1950,  # 0 by default
         # Max steps for training. Accumulated from 'start_step' instead of 0.
         'end_step': 80000,  # 80000 in af2
         # Frequency of logging messages and the training loss curve.
