@@ -31,6 +31,8 @@ from unifold.data import pipeline
 from unifold.data import templates
 from unifold.inference.inference_pipeline import generate_pkl_features_from_fasta
 
+os.environ['XLA_PYTHON_CLIENT_PREALLOCATE'] = 'false'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 #### USER CONFIGURATION ####
 
 # Note: If your databases and toolkits were configured directly using the scripts 
