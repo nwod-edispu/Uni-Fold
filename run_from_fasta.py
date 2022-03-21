@@ -42,6 +42,7 @@ from unifold.model.model import RunModel
 from unifold.train.mixed_precision import normalize_precision
 from unifold.train.utils import load_params
 from unifold.relax.relax import AmberRelaxation
+
 os.environ['XLA_PYTHON_CLIENT_PREALLOCATE'] = 'false'
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 #### USER CONFIGURATION ####
@@ -134,23 +135,41 @@ flags.DEFINE_string('hhsearch_binary_path', 'hhsearch',
                     'Path to the HHsearch executable.')
 flags.DEFINE_string('kalign_binary_path', 'kalign',
                     'Path to the Kalign executable.')
-flags.DEFINE_string('uniref90_database_path', uniref90_database_path,
-                    'Path to the Uniref90 database for use by JackHMMER.')
-flags.DEFINE_string('mgnify_database_path', mgnify_database_path,
-                    'Path to the MGnify database for use by JackHMMER.')
-flags.DEFINE_string('bfd_database_path', bfd_database_path,
-                    'Path to the BFD database for use by HHblits.')
-flags.DEFINE_string('uniclust30_database_path', uniclust30_database_path,
-                    'Path to the Uniclust30 database for use by HHblits.')
-flags.DEFINE_string('pdb70_database_path', pdb70_database_path,
-                    'Path to the PDB70 database for use by HHsearch.')
-flags.DEFINE_string('template_mmcif_dir', template_mmcif_dir,
-                    'Path to a directory with template mmCIF structures, '
-                    'each named <pdb_id>.cif')
+# flags.DEFINE_string('uniref90_database_path', uniref90_database_path,
+#                     'Path to the Uniref90 database for use by JackHMMER.')
+# flags.DEFINE_string('mgnify_database_path', mgnify_database_path,
+#                     'Path to the MGnify database for use by JackHMMER.')
+# flags.DEFINE_string('bfd_database_path', bfd_database_path,
+#                     'Path to the BFD database for use by HHblits.')
+# flags.DEFINE_string('uniclust30_database_path', uniclust30_database_path,
+#                     'Path to the Uniclust30 database for use by HHblits.')
+# flags.DEFINE_string('pdb70_database_path', pdb70_database_path,
+#                     'Path to the PDB70 database for use by HHsearch.')
+# flags.DEFINE_string('template_mmcif_dir', template_mmcif_dir,
+#                     'Path to a directory with template mmCIF structures, '
+#                     'each named <pdb_id>.cif')
 flags.DEFINE_string('max_template_date', '2020-4-30',
                     'Maximum template release date to consider. Important '
                     'if folding historical test sets.')
-flags.DEFINE_string('obsolete_pdbs_path', obsolete_pdbs_path,
+# flags.DEFINE_string('obsolete_pdbs_path', obsolete_pdbs_path,
+#                     'Path to file containing a mapping from obsolete PDB IDs '
+#                     'to the PDB IDs of their replacements.')
+# Databases paths.
+flags.DEFINE_string('uniref90_database_path', "/home/hanj/workplace/genetic/uniref90/uniref90.fasta",
+                    'Path to the Uniref90 database for use by JackHMMER.')
+flags.DEFINE_string('mgnify_database_path', "/home/hanj/workplace/genetic/mgnify/mgy_clusters_2018_12.fa",
+                    'Path to the MGnify database for use by JackHMMER.')
+flags.DEFINE_string('bfd_database_path', "/data/hdd/hanj/small_bfd/bfd-first_non_consensus_sequences.fasta",
+                    'Path to the BFD database for use by HHblits.')
+flags.DEFINE_string('uniclust30_database_path',
+                    "/home/hanj/workplace/genetic/uniclust30/uniclust30_2018_08/uniclust30_2018_08",
+                    'Path to the Uniclust30 database for use by HHblits.')
+flags.DEFINE_string('pdb70_database_path', "/home/hanj/workplace/genetic/pdb70/pdb70",
+                    'Path to the PDB70 database for use by HHsearch.')
+flags.DEFINE_string('template_mmcif_dir', "/home/hanj/workplace/genetic/pdb_mmcif/mmcif_files/",
+                    'Path to a directory with template mmCIF structures, '
+                    'each named <pdb_id>.cif')
+flags.DEFINE_string('obsolete_pdbs_path', "/home/hanj/workplace/genetic/pdb_mmcif/obsolete.dat",
                     'Path to file containing a mapping from obsolete PDB IDs '
                     'to the PDB IDs of their replacements.')
 
@@ -192,10 +211,10 @@ def main(argv):
         mgnify_database_path=FLAGS.mgnify_database_path,
         bfd_database_path=FLAGS.bfd_database_path,
         uniclust30_database_path=FLAGS.uniclust30_database_path,
-        small_bfd_database_path=None,
+        small_bfd_database_path=FLAGS.bfd_database_path,
         pdb70_database_path=FLAGS.pdb70_database_path,
         template_featurizer=template_featurizer,
-        use_small_bfd=False)
+        use_small_bfd=True)
 
     precision = normalize_precision(FLAGS.precision)
     model_runners = {}

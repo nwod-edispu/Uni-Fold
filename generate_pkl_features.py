@@ -83,7 +83,7 @@ flags.DEFINE_integer('random_seed', None,
                      'is randomly generated. Note that even if this is set, '
                      'Uni-Fold may still not be deterministic, because '
                      'processes like GPU inference are nondeterministic.')
-flags.DEFINE_integer('num_workers', 1, 'Number of parallel workers.')
+flags.DEFINE_integer('num_workers', 16, 'Number of parallel workers.')
 
 FLAGS = flags.FLAGS
 
