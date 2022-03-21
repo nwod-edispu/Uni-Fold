@@ -96,6 +96,21 @@ class DataPipeline:
                  mgnify_max_hits: int = 501,
                  uniref_max_hits: int = 10000):
         """Constructs a feature dict for a given FASTA file."""
+        self._use_small_bfd = use_small_bfd
+        self.jackhmmer_uniref90_runner = jackhmmer.Jackhmmer(
+            binary_path=jackhmmer_binary_path,
+            database_path=uniref90_database_path)
+        if use_small_bfd:
+            self.jackhmmer_small_bfd_runner = jackhmmer.Jackhmmer(
+                binary_path=jackhmmer_binary_path,
+                database_path=small_bfd_database_path)
+        else:
+            self.hhblits_bfd_uniclust_runner = hhblits.HHBlits(
+                binary_path=hhblits_binary_path,
+                databases=[bfd_database_path, uniclust30_database_path])
+        self.jackhmmer_mgnify_runner = jackhmmer.Jackhmmer(
+            binary_path=jackhmmer_binary_path,
+            database_path=mgnify_database_path)
         self.hhsearch_pdb70_runner = hhsearch.HHSearch(
             binary_path=hhsearch_binary_path,
             databases=[pdb70_database_path])
@@ -105,17 +120,8 @@ class DataPipeline:
 
     def process(self, input_fasta_path: str, msa_output_dir: str) -> FeatureDict:
         """Runs alignment tools on the input sequence and creates features."""
-        fasta_dir, fasta_file = os.path.split(input_fasta_path)
-        parent_dir = fasta_dir.rsplit("/", 1)[0]
-        fasta_name, suffix = os.path.splitext(fasta_file)
-        a3m_path = os.path.join(parent_dir, "a3m", fasta_name + ".a3m")
-
         with open(input_fasta_path) as f:
             input_fasta_str = f.read()
-
-        with open(a3m_path) as f:
-            msa_data = f.read()
-
         input_seqs, input_descs = parsers.parse_fasta(input_fasta_str)
         if len(input_seqs) != 1:
             raise ValueError(
@@ -124,15 +130,55 @@ class DataPipeline:
         input_description = input_descs[0]
         num_res = len(input_sequence)
 
-        hhsearch_result = self.hhsearch_pdb70_runner.query(msa_data)
+        jackhmmer_uniref90_result = self.jackhmmer_uniref90_runner.query(
+            input_fasta_path)[0]
+        jackhmmer_mgnify_result = self.jackhmmer_mgnify_runner.query(
+            input_fasta_path)[0]
+
+        uniref90_msa_as_a3m = parsers.convert_stockholm_to_a3m(
+            jackhmmer_uniref90_result['sto'], max_sequences=self.uniref_max_hits)
+        hhsearch_result = self.hhsearch_pdb70_runner.query(uniref90_msa_as_a3m)
+
+        uniref90_out_path = os.path.join(msa_output_dir, 'uniref90_hits.sto')
+        with open(uniref90_out_path, 'w') as f:
+            f.write(jackhmmer_uniref90_result['sto'])
+
+        mgnify_out_path = os.path.join(msa_output_dir, 'mgnify_hits.sto')
+        with open(mgnify_out_path, 'w') as f:
+            f.write(jackhmmer_mgnify_result['sto'])
 
         pdb70_out_path = os.path.join(msa_output_dir, 'pdb70_hits.hhr')
         with open(pdb70_out_path, 'w') as f:
             f.write(hhsearch_result)
 
-        rosetta_msa, rosetta_deletion_matrix = parsers.parse_a3m(msa_data)
-
+        uniref90_msa, uniref90_deletion_matrix, _ = parsers.parse_stockholm(
+            jackhmmer_uniref90_result['sto'])
+        mgnify_msa, mgnify_deletion_matrix, _ = parsers.parse_stockholm(
+            jackhmmer_mgnify_result['sto'])
         hhsearch_hits = parsers.parse_hhr(hhsearch_result)
+        mgnify_msa = mgnify_msa[:self.mgnify_max_hits]
+        mgnify_deletion_matrix = mgnify_deletion_matrix[:self.mgnify_max_hits]
+
+        if self._use_small_bfd:
+            jackhmmer_small_bfd_result = self.jackhmmer_small_bfd_runner.query(
+                input_fasta_path)[0]
+
+            bfd_out_path = os.path.join(msa_output_dir, 'small_bfd_hits.a3m')
+            with open(bfd_out_path, 'w') as f:
+                f.write(jackhmmer_small_bfd_result['sto'])
+
+            bfd_msa, bfd_deletion_matrix, _ = parsers.parse_stockholm(
+                jackhmmer_small_bfd_result['sto'])
+        else:
+            hhblits_bfd_uniclust_result = self.hhblits_bfd_uniclust_runner.query(
+                input_fasta_path)
+
+            bfd_out_path = os.path.join(msa_output_dir, 'bfd_uniclust_hits.a3m')
+            with open(bfd_out_path, 'w') as f:
+                f.write(hhblits_bfd_uniclust_result['a3m'])
+
+            bfd_msa, bfd_deletion_matrix = parsers.parse_a3m(
+                hhblits_bfd_uniclust_result['a3m'])
 
         templates_result = self.template_featurizer.get_templates(
             query_sequence=input_sequence,
@@ -140,16 +186,20 @@ class DataPipeline:
             query_release_date=None,
             hits=hhsearch_hits)
 
-        # hj: this step is not time comsuming
         sequence_features = make_sequence_features(
             sequence=input_sequence,
             description=input_description,
             num_res=num_res)
 
         msa_features = make_msa_features(
-            msas=[rosetta_msa],
-            deletion_matrices=[rosetta_deletion_matrix])
+            msas=(uniref90_msa, bfd_msa, mgnify_msa),
+            deletion_matrices=(uniref90_deletion_matrix,
+                               bfd_deletion_matrix,
+                               mgnify_deletion_matrix))
 
+        logging.info('Uniref90 MSA size: %d sequences.', len(uniref90_msa))
+        logging.info('BFD MSA size: %d sequences.', len(bfd_msa))
+        logging.info('MGnify MSA size: %d sequences.', len(mgnify_msa))
         logging.info('Final (deduplicated) MSA size: %d sequences.',
                      msa_features['num_alignments'][0])
         logging.info('Total number of templates (NB: this can include bad '
@@ -157,3 +207,58 @@ class DataPipeline:
                      templates_result.features['template_domain_names'].shape[0])
 
         return {**sequence_features, **msa_features, **templates_result.features}
+    #
+    # def process(self, input_fasta_path: str, msa_output_dir: str) -> FeatureDict:
+    #     """Runs alignment tools on the input sequence and creates features."""
+    #     fasta_dir, fasta_file = os.path.split(input_fasta_path)
+    #     parent_dir = fasta_dir.rsplit("/", 1)[0]
+    #     fasta_name, suffix = os.path.splitext(fasta_file)
+    #     a3m_path = os.path.join(parent_dir, "a3m", fasta_name + ".a3m")
+    #
+    #     with open(input_fasta_path) as f:
+    #         input_fasta_str = f.read()
+    #
+    #     with open(a3m_path) as f:
+    #         msa_data = f.read()
+    #
+    #     input_seqs, input_descs = parsers.parse_fasta(input_fasta_str)
+    #     if len(input_seqs) != 1:
+    #         raise ValueError(
+    #             f'More than one input sequence found in {input_fasta_path}.')
+    #     input_sequence = input_seqs[0]
+    #     input_description = input_descs[0]
+    #     num_res = len(input_sequence)
+    #
+    #     hhsearch_result = self.hhsearch_pdb70_runner.query(msa_data)
+    #
+    #     pdb70_out_path = os.path.join(msa_output_dir, 'pdb70_hits.hhr')
+    #     with open(pdb70_out_path, 'w') as f:
+    #         f.write(hhsearch_result)
+    #
+    #     rosetta_msa, rosetta_deletion_matrix = parsers.parse_a3m(msa_data)
+    #
+    #     hhsearch_hits = parsers.parse_hhr(hhsearch_result)
+    #
+    #     templates_result = self.template_featurizer.get_templates(
+    #         query_sequence=input_sequence,
+    #         query_pdb_code=None,
+    #         query_release_date=None,
+    #         hits=hhsearch_hits)
+    #
+    #     # hj: this step is not time comsuming
+    #     sequence_features = make_sequence_features(
+    #         sequence=input_sequence,
+    #         description=input_description,
+    #         num_res=num_res)
+    #
+    #     msa_features = make_msa_features(
+    #         msas=[rosetta_msa],
+    #         deletion_matrices=[rosetta_deletion_matrix])
+    #
+    #     logging.info('Final (deduplicated) MSA size: %d sequences.',
+    #                  msa_features['num_alignments'][0])
+    #     logging.info('Total number of templates (NB: this can include bad '
+    #                  'templates and is later filtered to top 4): %d.',
+    #                  templates_result.features['template_domain_names'].shape[0])
+    #
+    #     return {**sequence_features, **msa_features, **templates_result.features}
