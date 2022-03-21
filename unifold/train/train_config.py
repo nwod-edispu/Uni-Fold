@@ -63,7 +63,7 @@ train_config = ConfigDict({
         # Optimizer class.
         'name': 'adam',  # in ['adam', 'sgd', ...]
         # Learning rate. if warm up steps > 0, this specifies the peak learning rate. 
-        'learning_rate': 1e-3,  # 1e-3 in af2
+        'learning_rate': 3e-3,  # 1e-3 in af2
         # The number of warm-up steps.
         'warm_up_steps': 10,  # 1000 in af2
         # Learning rate decay configs.
