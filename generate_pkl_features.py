@@ -58,20 +58,20 @@ flags.DEFINE_string('hhsearch_binary_path', 'hhsearch',
 flags.DEFINE_string('kalign_binary_path', 'kalign',
                     'Path to the Kalign executable.')
 # Databases paths.
-flags.DEFINE_string('uniref90_database_path', None,
+flags.DEFINE_string('uniref90_database_path', "/home/hanj/workplace/genetic/uniref90/uniref90.fasta",
                     'Path to the Uniref90 database for use by JackHMMER.')
-flags.DEFINE_string('mgnify_database_path', None,
+flags.DEFINE_string('mgnify_database_path', "/home/hanj/workplace/genetic/mgnify/mgy_clusters_2018_12.fa",
                     'Path to the MGnify database for use by JackHMMER.')
-flags.DEFINE_string('bfd_database_path', None,
+flags.DEFINE_string('bfd_database_path', "/data/hdd/hanj/small_bfd/bfd-first_non_consensus_sequences.fasta",
                     'Path to the BFD database for use by HHblits.')
-flags.DEFINE_string('uniclust30_database_path', None,
+flags.DEFINE_string('uniclust30_database_path', "/home/hanj/workplace/genetic/uniclust30/uniclust30_2018_08/uniclust30_2018_08",
                     'Path to the Uniclust30 database for use by HHblits.')
-flags.DEFINE_string('pdb70_database_path', None,
+flags.DEFINE_string('pdb70_database_path', "/home/hanj/workplace/genetic/pdb70/pdb70",
                     'Path to the PDB70 database for use by HHsearch.')
-flags.DEFINE_string('template_mmcif_dir', None,
+flags.DEFINE_string('template_mmcif_dir', "/home/hanj/workplace/genetic/pdb_mmcif/mmcif_files/",
                     'Path to a directory with template mmCIF structures, '
                     'each named <pdb_id>.cif')
-flags.DEFINE_string('obsolete_pdbs_path', None,
+flags.DEFINE_string('obsolete_pdbs_path', "/home/hanj/workplace/genetic/pdb_mmcif/obsolete.dat",
                     'Path to file containing a mapping from obsolete PDB IDs '
                     'to the PDB IDs of their replacements.')
 # Other configs.
@@ -170,8 +170,8 @@ def main(argv):
         mgnify_database_path=mgnify_database_path,
         bfd_database_path=bfd_database_path,
         uniclust30_database_path=uniclust30_database_path,
-        use_small_bfd=False,
-        small_bfd_database_path="",
+        use_small_bfd=True,
+        small_bfd_database_path=bfd_database_path,
         pdb70_database_path=pdb70_database_path,
         template_featurizer=template_featurizer)
 
