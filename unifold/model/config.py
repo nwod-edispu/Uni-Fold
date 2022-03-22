@@ -55,7 +55,7 @@ CONFIG_DIFFS = {
         'model.heads.structure_module.structural_violation_loss_weight': 0.0,
         'data.common.max_extra_msa': 512,
         'data.eval.crop_size': 256,
-        'model.embeddings_and_evoformer.evoformer_num_block': 32,
+        'model.embeddings_and_evoformer.evoformer_num_block': 16,
         'model.embeddings_and_evoformer.extra_msa_channel': 16,
         'model.embeddings_and_evoformer.msa_channel': 128,
         'model.embeddings_and_evoformer.pair_channel': 64,
