@@ -167,7 +167,7 @@ class DataSystem:
         # rng, batch = self.preprocess(rng, raw_features, raw_labels)
         # batch['resolution'] = resolution
         # HJ: for training
-        done_features = "/home/hanj/workplace/unifold_dataset/training_set/features_unifold_256/" + prot_name + ".pkl"
+        done_features = "/home/hanj/workplace/unifold_dataset/training_set/features_unifold/" + prot_name + ".pkl"
         with open(done_features, "rb") as f:
             batch = pickle.load(f)
         rng, batch_rng = jrand.split(rng, 2)

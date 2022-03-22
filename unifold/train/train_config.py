@@ -35,7 +35,7 @@ train_config = ConfigDict({
         # optimizers, yet `npz` saves only model parameters.
         'ckpt_format': 'pkl',
         # Initial step. if > 0, the model will auto-load ckpts from `load_dir`.
-        'start_step': 2700,  # 0 by default
+        'start_step': 280,  # 0 by default
         # Max steps for training. Accumulated from 'start_step' instead of 0.
         'end_step': 80000,  # 80000 in af2
         # Frequency of logging messages and the training loss curve.
@@ -45,10 +45,10 @@ train_config = ConfigDict({
         # Frequency of saving ckpts.
         'save_freq': 10,
         # Directory to save ckpts. used for auto-saving ckpts.
-        'save_dir': '../out/unifold',
+        'save_dir': '../out/unifold_evo32',
         # Directory to load ckpts. used for auto-loading ckpts.
         # ignored if start_step == 0.
-        'load_dir': '../out/unifold',
+        'load_dir': '../out/unifold_evo32',
         # Training precision, generally in ['fp32', 'bf16'].
         # Set for mixed precision training.
         'precision': 'bf16',
@@ -63,7 +63,7 @@ train_config = ConfigDict({
         # Optimizer class.
         'name': 'adam',  # in ['adam', 'sgd', ...]
         # Learning rate. if warm up steps > 0, this specifies the peak learning rate. 
-        'learning_rate': 3e-4,  # 1e-3 in af2
+        'learning_rate': 1e-3,  # 1e-3 in af2
         # The number of warm-up steps.
         'warm_up_steps': 10,  # 1000 in af2
         # Learning rate decay configs.
