@@ -19,7 +19,7 @@ from ml_collections import ConfigDict
 train_config = ConfigDict({
     'global_config': {
         # whether you are using MPI communication for multi-gpu training.
-        'use_mpi': False,
+        'use_mpi': True,
         # This specifies a model config defined in `unifold/model/config.py`. 
         # 'model_1' to 'model_5' are the settings used in the AlphaFold paper.
         # Setting this config to 'unifold' to reproduce Uni-Fold, or 'demo' 
@@ -35,7 +35,7 @@ train_config = ConfigDict({
         # optimizers, yet `npz` saves only model parameters.
         'ckpt_format': 'pkl',
         # Initial step. if > 0, the model will auto-load ckpts from `load_dir`.
-        'start_step': 870,  # 0 by default
+        'start_step': 560,  # 0 by default
         # Max steps for training. Accumulated from 'start_step' instead of 0.
         'end_step': 80000,  # 80000 in af2
         # Frequency of logging messages and the training loss curve.
@@ -45,10 +45,10 @@ train_config = ConfigDict({
         # Frequency of saving ckpts.
         'save_freq': 10,
         # Directory to save ckpts. used for auto-saving ckpts.
-        'save_dir': '../out/unifold_evo32',
+        'save_dir': '../out/unifold_performer',
         # Directory to load ckpts. used for auto-loading ckpts.
         # ignored if start_step == 0.
-        'load_dir': '../out/unifold_evo32',
+        'load_dir': '../out/unifold_performer',
         # Training precision, generally in ['fp32', 'bf16'].
         # Set for mixed precision training.
         'precision': 'bf16',
@@ -56,8 +56,8 @@ train_config = ConfigDict({
         # batches. Generally has little impact on code efficiency.
         'max_queue_size': 128,
         # Random seed for initializing model parameters. Ignored when attempting to auto load ckpts.
-        'random_seed': 42,
-        'accumulation_size': 128
+        'random_seed': 181129,
+        'accumulation_size': 64
     },
     'optimizer': {
         # Optimizer class.
@@ -70,7 +70,7 @@ train_config = ConfigDict({
         'decay': {
             'name': 'exp',  # only 'exp' supported
             'decay_rate': 0.95,  # 0.95 in af2
-            'decay_steps': 100  # 5000? in af2
+            'decay_steps': 5000  # 5000? in af2
         },
         # Global clip norm of gradients.
         'clip_norm': 1e-1,

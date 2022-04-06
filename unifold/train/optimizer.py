@@ -103,8 +103,9 @@ class Optimizer:
         if path.endswith('.pkl'):
             opt_state = utils.load_opt_state_from_pkl(path)
         elif path.endswith('.npz'):
-            params = utils.load_params_from_npz(path)
-            opt_state = self.optimizer.init_state(params)
+            # params = utils.load_params_from_npz(path)
+            params = utils.get_model_haiku_params(path)
+            opt_state = self.init_state(params)
         else:
             raise ValueError(f"unknown type of params: {path}")
         return opt_state

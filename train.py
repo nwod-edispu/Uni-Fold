@@ -28,7 +28,8 @@ if use_mpi:
     mpi_comm = MPI.COMM_WORLD
     mpi_rank = mpi_comm.Get_rank()
     is_main_process = (mpi_rank == 0)
-    os.environ['CUDA_VISIBLE_DEVICES'] = str(mpi_rank % train_config.global_config.gpus_per_node + 3)
+    os.environ['CUDA_VISIBLE_DEVICES'] = str(mpi_rank % train_config.global_config.gpus_per_node)
+    # os.environ['CUDA_VISIBLE_DEVICES'] = '0' if mpi_rank == 0 else '2'
 else:  # assume single gpu is used.
     mpi_comm = None
     mpi_rank = 0
@@ -110,8 +111,7 @@ def train(train_config):
             update_rng, batch = get_queue_item(train_queue)
         else:
             update_rng, batch = get_multi_batch()
-            for i in range(10):
-                trainer.train_step(step + i, batch, update_rng, silent=(not is_main_process))
+        trainer.train_step(step, batch, update_rng, silent=(not is_main_process))
         # if eval_data is not None and trainer.is_eval_step(step):
         #     eval_rng, batch = get_queue_item(eval_queue)
         #     trainer.eval_step(step, batch, eval_rng, silent=(not is_main_process))

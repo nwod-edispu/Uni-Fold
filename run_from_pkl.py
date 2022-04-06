@@ -54,7 +54,7 @@ flags.DEFINE_string(
                          '(\'bf16\'). Generally, using lower precisions does not siginificantly '
                          'influence the accuracies, yet faster inference may be achieved.')
 flags.DEFINE_bool(
-    'use_amber_relax', True, 'Whether to use the Amber99 Force Field to relax '
+    'use_amber_relax', False, 'Whether to use the Amber99 Force Field to relax '
                              'the predicted structure.')
 flags.DEFINE_integer(
     'random_seed', 181129, 'The random seed used for model prediction. This '
@@ -95,6 +95,7 @@ def main(argv):
     for model_name, model_path in zip(FLAGS.model_names, FLAGS.model_paths):
         model_config = get_model_config(model_name, is_training=False)
         model_params = load_params(model_path)
+        # logging.info(model_params.keys())
         model_runner = RunModel(
             config=model_config,
             params=model_params,

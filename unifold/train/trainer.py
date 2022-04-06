@@ -150,6 +150,7 @@ class Trainer:
             from mpi4py import MPI
             import mpi4jax
             from jax.tree_util import tree_flatten, tree_unflatten
+
             def _mpi_reduce_value(value):
                 value, _ = mpi4jax.allreduce(value, op=MPI.SUM, comm=self.mpi_comm)
                 value /= self.world_size
@@ -172,9 +173,6 @@ class Trainer:
         def part1(batch0, opt_state, num_batch, rng):
             loss, grads = jax.value_and_grad(_loss_fn)(
                 self.optimizer.get_params(opt_state), batch0, rng)
-            if self.gc.use_mpi:
-                loss = _mpi_reduce_value(loss)
-                grads = _mpi_reduce_tree(grads)
             loss /= num_batch
             grads = divide_pytree(grads, num_batch)
             return loss, grads
@@ -183,9 +181,7 @@ class Trainer:
         def part2(loss, grads, batchi, opt_state, num_batch, rng):
             new_loss, new_grads = jax.value_and_grad(_loss_fn)(
                 self.optimizer.get_params(opt_state), batchi, rng)
-            if self.gc.use_mpi:
-                new_loss = _mpi_reduce_value(loss)
-                new_grads = _mpi_reduce_tree(grads)
+
             loss += new_loss / num_batch
             grads = add_pytrees(grads, divide_pytree(new_grads, num_batch))
             return loss, grads
@@ -205,6 +201,10 @@ class Trainer:
             for i in range(1, num_batch):
                 batchi = multi_batch[i]
                 loss, grads = part2(loss, grads, batchi, opt_state, num_batch, rng)
+
+            if self.gc.use_mpi:
+                loss = _mpi_reduce_value(loss)
+                grads = _mpi_reduce_tree(grads)
 
             opt_state = part3(step, grads, opt_state)
             return opt_state, loss
@@ -250,6 +250,7 @@ class Trainer:
     def autoload(self, step, format='pkl'):
         # load ckpt
         load_path = os.path.join(self.gc.load_dir, self.auto_ckpt_name(step, format))
+        # load_path = "/home/hanj/workplace/genetic/params/params_model_1.npz"
         # hj: miss assign?
         self.optim_state = self.optimizer.load(load_path)
         # load loss curve

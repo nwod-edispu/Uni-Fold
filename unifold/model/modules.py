@@ -28,6 +28,7 @@ from unifold.model import mapping
 from unifold.model import prng
 from unifold.model import quat_affine
 from unifold.model import utils
+from unifold.model import fast_attention
 import haiku as hk
 import jax
 import jax.numpy as jnp
@@ -142,7 +143,7 @@ class AlphaFoldIteration(hk.Module):
     Jumper et al. (2021) Suppl. Alg. 2 "Inference" lines 3-22
     """
 
-    def __init__(self, config, global_config, name='unifold_iteration'):
+    def __init__(self, config, global_config, name='alphafold_iteration'):
         super().__init__(name=name)
         self.config = config
         self.global_config = global_config
@@ -287,7 +288,7 @@ class AlphaFold(hk.Module):
     Jumper et al. (2021) Suppl. Alg. 2 "Inference"
     """
 
-    def __init__(self, config, name='unifold'):
+    def __init__(self, config, name='alphafold'):
         super().__init__(name=name)
         self.config = config
         self.global_config = config.global_config
@@ -552,6 +553,93 @@ def glorot_uniform():
                                            distribution='uniform')
 
 
+class FastAttention(hk.Module):
+    """Multihead attention."""
+
+    def __init__(self, config, global_config, output_dim, name='attention'):
+        super().__init__(name=name)
+
+        self.config = config
+        self.global_config = global_config
+        self.output_dim = output_dim
+
+    def __call__(self, q_data, m_data, bias, nonbatched_bias=None):
+        """Builds Attention module.
+
+        Arguments:
+          q_data: A tensor of queries, shape [batch_size, N_queries, q_channels].
+          m_data: A tensor of memories from which the keys and values are
+            projected, shape [batch_size, N_keys, m_channels].
+          bias: A bias for the attention, shape [batch_size, N_queries, N_keys].
+          nonbatched_bias: Shared bias, shape [N_queries, N_keys].
+
+        Returns:
+          A float32 tensor of shape [batch_size, N_queries, output_dim].
+        """
+        # Sensible default for when the config keys are missing
+        key_dim = self.config.get('key_dim', int(q_data.shape[-1]))
+        value_dim = self.config.get('value_dim', int(m_data.shape[-1]))
+        num_head = self.config.num_head
+        assert key_dim % num_head == 0
+        assert value_dim % num_head == 0
+        key_dim = key_dim // num_head
+        value_dim = value_dim // num_head
+
+        q_weights = hk.get_parameter(
+            'query_w', shape=(q_data.shape[-1], num_head, key_dim),
+            init=glorot_uniform())
+        k_weights = hk.get_parameter(
+            'key_w', shape=(m_data.shape[-1], num_head, key_dim),
+            init=glorot_uniform())
+        v_weights = hk.get_parameter(
+            'value_w', shape=(m_data.shape[-1], num_head, value_dim),
+            init=glorot_uniform())
+
+        q = jnp.einsum('bqa,ahc->bqhc', q_data, q_weights) * key_dim ** (-0.5)
+        k = jnp.einsum('bka,ahc->bkhc', m_data, k_weights)
+        v = jnp.einsum('bka,ahc->bkhc', m_data, v_weights)
+
+        fast_attn_fn = fast_attention.make_fast_generalized_attention(key_dim)
+        q = jnp.transpose(q, [0, 2, 1, 3])
+        k = jnp.transpose(k, [0, 2, 1, 3])
+        v = jnp.transpose(v, [0, 2, 1, 3])
+        weighted_avg = fast_attn_fn(q, k, v)
+        weighted_avg = jnp.transpose(weighted_avg, [0, 2, 1, 3])
+
+
+        if self.global_config.zero_init:
+            init = hk.initializers.Constant(0.0)
+        else:
+            init = glorot_uniform()
+
+        if self.config.gating:
+            gating_weights = hk.get_parameter(
+                'gating_w',
+                shape=(q_data.shape[-1], num_head, value_dim),
+                init=hk.initializers.Constant(0.0))
+            gating_bias = hk.get_parameter(
+                'gating_b',
+                shape=(num_head, value_dim),
+                init=hk.initializers.Constant(1.0))
+
+            gate_values = jnp.einsum('bqc, chv->bqhv', q_data,
+                                     gating_weights) + gating_bias
+
+            gate_values = jax.nn.sigmoid(gate_values)
+
+            weighted_avg *= gate_values
+
+        o_weights = hk.get_parameter(
+            'output_w', shape=(num_head, value_dim, self.output_dim),
+            init=init)
+        o_bias = hk.get_parameter('output_b', shape=(self.output_dim,),
+                                  init=hk.initializers.Constant(0.0))
+
+        output = jnp.einsum('bqhc,hco->bqo', weighted_avg, o_weights) + o_bias
+
+        return output
+
+
 class Attention(hk.Module):
     """Multihead attention."""
 
@@ -597,6 +685,7 @@ class Attention(hk.Module):
         q = jnp.einsum('bqa,ahc->bqhc', q_data, q_weights) * key_dim ** (-0.5)
         k = jnp.einsum('bka,ahc->bkhc', m_data, k_weights)
         v = jnp.einsum('bka,ahc->bkhc', m_data, v_weights)
+
         logits = jnp.einsum('bqhc,bkhc->bhqk', q, k) + bias
         if nonbatched_bias is not None:
             logits += jnp.expand_dims(nonbatched_bias, axis=0)
@@ -632,7 +721,6 @@ class Attention(hk.Module):
                                   init=hk.initializers.Constant(0.0))
 
         output = jnp.einsum('bqhc,hco->bqo', weighted_avg, o_weights) + o_bias
-
         return output
 
 
@@ -695,7 +783,8 @@ class GlobalAttention(hk.Module):
         k = jnp.einsum('bka,ac->bkc', m_data, k_weights)
         # bias = (1e9 * (q_mask[:, None, :, 0] - 1.))
         bias = masked_by_dtype(k.dtype, q_mask[:, None, :, 0] - 1.)
-        logits = jnp.einsum('bhc,bkc->bhk', q, k) + bias
+        # logits = jnp.einsum('bhc,bkc->bhk', q, k) + bias
+        logits = jnp.einsum('bhc,bkc->bhk', q, k)
         weights = utils.softmax(logits)
         weighted_avg = jnp.einsum('bhk,bkc->bhc', weights, v)
 
@@ -840,7 +929,7 @@ class MSAColumnAttention(hk.Module):
             axis=[-1], create_scale=True, create_offset=True, name='query_norm')(
             msa_act)
 
-        attn_mod = Attention(
+        attn_mod = FastAttention(
             c, self.global_config, msa_act.shape[-1])
         msa_act = mapping.inference_subbatch(
             attn_mod,

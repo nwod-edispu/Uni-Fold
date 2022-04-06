@@ -17,10 +17,10 @@ def precompute_features(rng, out_dir):
 
 
 def main():
-    random_seed = 2163783
+    random_seed = 42
     with jax.disable_jit():
         rng = jrand.PRNGKey(random_seed)
-    out_dir = "/home/hanj/workplace/unifold_dataset/training_set/features_unifold_256/"
+    out_dir = "/home/hanj/workplace/dataset/protein_dataset/preprocessed_features_128/"
     precompute_features(rng, out_dir)
 
 

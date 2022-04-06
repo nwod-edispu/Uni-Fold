@@ -23,6 +23,7 @@ import jax.random as jrand
 from jax.experimental import optimizers as jopt
 from multiprocessing import Queue
 import os
+import haiku as hk
 
 from unifold.common.residue_constants import restype_order_with_x
 from unifold.data.mmcif_parsing import MmcifObject
@@ -85,6 +86,12 @@ def load_labels(cif_path: str, fasta_dir: str, pdb_id: str, chain_id: str = 'A')
         'all_atom_mask': all_atom_mask[begin:end, ...],  # [NR, 37]
         'resolution': resolution  # [,]
     }
+    # return {
+    #     'aatype_index': aatype_idx,  # [NR,]
+    #     'all_atom_positions': all_atom_positions,  # [NR, 37, 3]
+    #     'all_atom_mask': all_atom_mask,  # [NR, 37]
+    #     'resolution': resolution  # [,]
+    # }
 
 
 ignored_keys = [
@@ -207,12 +214,36 @@ def load_params_from_npz(npz_path):
     return params['arr_0'].flat[0]
 
 
+def flat_params_to_haiku(params: Mapping[str, np.ndarray]) -> hk.Params:
+    """Convert a dictionary of NumPy arrays to Haiku parameters."""
+    hk_params = {}
+    for path, array in params.items():
+        scope, name = path.split('//')
+        if scope not in hk_params:
+            hk_params[scope] = {}
+        hk_params[scope][name] = jnp.array(array)
+
+    return hk_params
+
+
+def get_model_haiku_params(model_path: str):
+    """Get the Haiku parameters from a model name."""
+    import io
+
+    with open(model_path, 'rb') as f:
+        params = np.load(io.BytesIO(f.read()), allow_pickle=False)
+    # print(params)
+
+    return flat_params_to_haiku(params)
+
+
 def load_params(model_path: str):
     if model_path.endswith('.pkl'):
         opt_state = load_opt_state_from_pkl(model_path)
         params = jopt.unpack_optimizer_state(opt_state)
     elif model_path.endswith('.npz'):
         params = load_params_from_npz(model_path)
+        # params = get_model_haiku_params(model_path)
     else:
         raise ValueError(f"unknown type of params: {model_path}")
     return params
